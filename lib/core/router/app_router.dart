@@ -46,8 +46,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           // Branch 1: Catalog
            StatefulShellBranch(
              routes: [
-               GoRoute(
-                 path: '/catalog', 
+                GoRoute(
+                 path: '/tab-catalog', 
                  name: 'catalog',
                  builder: (context, state) {
                    final category = state.uri.queryParameters['category'];

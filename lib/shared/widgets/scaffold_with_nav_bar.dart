@@ -24,7 +24,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Theme.of(context).shadowColor.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -32,31 +32,31 @@ class ScaffoldWithNavBar extends StatelessWidget {
         ),
         child: NavigationBar(
           height: 65,
-          backgroundColor: Colors.white,
-          indicatorColor: Colors.deepOrangeAccent.withOpacity(0.1),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: (index) => _onTap(context, index),
           labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
           animationDuration: const Duration(milliseconds: 500),
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home, color: Colors.deepOrangeAccent),
+              icon: Icon(Icons.home_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              selectedIcon: Icon(Icons.home, color: Theme.of(context).colorScheme.primary),
               label: 'Home',
             ),
             NavigationDestination(
-               icon: Icon(Icons.grid_view_outlined),
-               selectedIcon: Icon(Icons.grid_view, color: Colors.deepOrangeAccent),
+               icon: Icon(Icons.grid_view_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+               selectedIcon: Icon(Icons.grid_view, color: Theme.of(context).colorScheme.primary),
                label: 'Catalog',
             ),
             NavigationDestination(
-              icon: Icon(Icons.history_outlined),
-              selectedIcon: Icon(Icons.history, color: Colors.deepOrangeAccent),
+              icon: Icon(Icons.history_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              selectedIcon: Icon(Icons.history, color: Theme.of(context).colorScheme.primary),
               label: 'Orders',
             ),
             NavigationDestination(
-              icon: Icon(Icons.admin_panel_settings_outlined),
-              selectedIcon: Icon(Icons.admin_panel_settings, color: Colors.deepOrangeAccent),
+              icon: Icon(Icons.admin_panel_settings_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              selectedIcon: Icon(Icons.admin_panel_settings, color: Theme.of(context).colorScheme.primary),
               label: 'Admin',
             ),
           ],

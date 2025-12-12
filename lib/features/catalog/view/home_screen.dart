@@ -148,10 +148,11 @@ class _CategoryItem extends StatelessWidget {
     // Generate a consistent color based on index
     final color = _colors[index % _colors.length];
     
-    return GestureDetector(
+    return InkWell(
       onTap: () {
-        context.go(Uri(path: '/catalog', queryParameters: {'category': label}).toString());
+        context.go('/tab-catalog?category=${Uri.encodeComponent(label)}');
       },
+      borderRadius: BorderRadius.circular(8),
       child: Column(
         children: [
           Container(
