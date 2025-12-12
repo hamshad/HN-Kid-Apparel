@@ -15,7 +15,16 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final List<String> categories = ['AFGHANI', 'KURTI', 'PLAZZO', 'GOWN', 'LEHENGA'];
+  final List<Map<String, String>> categories = [
+    {'label': 'AFGHANI', 'image': 'https://images.unsplash.com/photo-1623091411315-bd4dc365515c?auto=format&fit=crop&w=300&q=80'}, // Valid Ethnic wear
+    {'label': 'KURTI', 'image': 'https://plus.unsplash.com/premium_photo-1664303847960-586146f906e1?auto=format&fit=crop&w=300&q=80'}, // Valid Kurti/Ethnic
+    {'label': 'PLAZZO', 'image': 'https://images.unsplash.com/photo-1596783935277-380eb9a3e230?auto=format&fit=crop&w=300&q=80'}, // Valid Ethnic pants
+    {'label': 'GOWN', 'image': 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=300&q=80'}, // Valid Gown
+    {'label': 'LEHENGA', 'image': 'https://images.unsplash.com/photo-1583391733958-c7564d3fb496?auto=format&fit=crop&w=300&q=80'}, // Valid Lehenga/Traditional
+    {'label': 'SAREE', 'image': 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80'}, // Valid Saree
+    {'label': 'TOPS', 'image': 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=300&q=80'}, // Valid Tops
+    {'label': 'JEANS', 'image': 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=300&q=80'}, // Valid Jeans
+  ];
   String _searchQuery = "";
 
   @override
@@ -76,7 +85,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             itemCount: categories.length,
                             separatorBuilder: (_, __) => const SizedBox(width: 16),
                             itemBuilder: (context, index) {
-                              return _CategoryItem(label: categories[index], index: index);
+                              final cat = categories[index];
+                              return _CategoryItem(
+                                label: cat['label']!, 
+                                imageUrl: cat['image']!, 
+                                index: index
+                              );
                             },
                           ),
                         ),
@@ -130,6 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 class _CategoryItem extends StatelessWidget {
   final String label;
+  final String imageUrl;
   final int index;
   
   // Vibrant colors for mock categories
@@ -141,7 +156,7 @@ class _CategoryItem extends StatelessWidget {
     Color(0xFFFFF3E0),
   ];
 
-  const _CategoryItem({required this.label, required this.index});
+  const _CategoryItem({required this.label, required this.imageUrl, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -161,9 +176,9 @@ class _CategoryItem extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
-               image: const DecorationImage(
-                 // Using a generic fashion icon from unsplash for now as we don't have per-category images
-                 image: NetworkImage("https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=200&q=80"),
+               image: DecorationImage(
+                 // Using specific category image
+                 image: NetworkImage(imageUrl),
                  fit: BoxFit.cover,
                  opacity: 0.8,
                ),

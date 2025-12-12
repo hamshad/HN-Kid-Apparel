@@ -56,15 +56,38 @@ class ProductCard extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: 4),
+                  _buildPrice(context),
+                  const SizedBox(height: 4),
                   Text(
-                    '${product.variants.length} Sizes',
+                    product.variants.map((v) => v.size).join(", "),
                     style: Theme.of(context).textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+
+  Widget _buildPrice(BuildContext context) {
+    if (product.variants.isEmpty) return const SizedBox.shrink();
+    
+    final prices = product.variants.map((v) => v.mrp).toList();
+    if (prices.isEmpty) return const SizedBox.shrink();
+
+    prices.sort();
+    final minPrice = prices.first;
+    
+    return Text(
+      '\$${minPrice.toStringAsFixed(0)}', 
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        color: Theme.of(context).primaryColor,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
