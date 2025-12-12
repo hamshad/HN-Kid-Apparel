@@ -98,31 +98,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             ),
                             const SizedBox(height: 24),
                             
-                            // Size Chart
-                            ExpansionTile(
-                              title: Text("Size Chart", style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                              children: [
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: DataTable(
-                                    columns: const [
-                                      DataColumn(label: Text('Standard')),
-                                      DataColumn(label: Text('UK')),
-                                      DataColumn(label: Text('US')),
-                                      DataColumn(label: Text('India')),
-                                    ],
-                                    rows: const [
-                                      DataRow(cells: [DataCell(Text('S')), DataCell(Text('8')), DataCell(Text('4')), DataCell(Text('36'))]),
-                                      DataRow(cells: [DataCell(Text('M')), DataCell(Text('10')), DataCell(Text('6')), DataCell(Text('38'))]),
-                                      DataRow(cells: [DataCell(Text('L')), DataCell(Text('12')), DataCell(Text('8')), DataCell(Text('40'))]),
-                                      DataRow(cells: [DataCell(Text('XL')), DataCell(Text('14')), DataCell(Text('10')), DataCell(Text('42'))]),
-                                      DataRow(cells: [DataCell(Text('XXL')), DataCell(Text('16')), DataCell(Text('12')), DataCell(Text('44'))]),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
+
 
                             // Size Selection
                             Text("Select Size", style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),

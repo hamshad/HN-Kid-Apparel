@@ -11,17 +11,17 @@
         ],
         "variants": [
             {
-                "size": "S",
+                "size": "18-20",
                 "mrp": 1200,
                 "available_qty": 50
             },
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 1250,
                 "available_qty": 40
             },
             {
-                "size": "L",
+                "size": "24-44",
                 "mrp": 1300,
                 "available_qty": 30
             }
@@ -45,12 +45,12 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 1800,
                 "available_qty": 20
             },
             {
-                "size": "L",
+                "size": "24-44",
                 "mrp": 1850,
                 "available_qty": 15
             }
@@ -73,17 +73,17 @@
         ],
         "variants": [
             {
-                "size": "S",
+                "size": "18-20",
                 "mrp": 800,
                 "available_qty": 100
             },
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 800,
                 "available_qty": 80
             },
             {
-                "size": "L",
+                "size": "24-44",
                 "mrp": 800,
                 "available_qty": 60
             }
@@ -106,12 +106,12 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 1500,
                 "available_qty": 45
             },
             {
-                "size": "XL",
+                "size": "24-44",
                 "mrp": 1600,
                 "available_qty": 20
             }
@@ -134,7 +134,7 @@
         ],
         "variants": [
             {
-                "size": "L",
+                "size": "24-32",
                 "mrp": 2000,
                 "available_qty": 10
             }
@@ -157,12 +157,12 @@
         ],
         "variants": [
             {
-                "size": "S",
+                "size": "18-20",
                 "mrp": 500,
                 "available_qty": 200
             },
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 550,
                 "available_qty": 150
             }
@@ -185,12 +185,12 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 600,
                 "available_qty": 80
             },
             {
-                "size": "L",
+                "size": "24-44",
                 "mrp": 600,
                 "available_qty": 70
             }
@@ -213,12 +213,12 @@
         ],
         "variants": [
             {
-                "size": "S",
+                "size": "18-20",
                 "mrp": 450,
                 "available_qty": 120
             },
             {
-                "size": "XL",
+                "size": "34-46",
                 "mrp": 500,
                 "available_qty": 60
             }
@@ -241,7 +241,7 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 700,
                 "available_qty": 90
             }
@@ -264,7 +264,7 @@
         ],
         "variants": [
             {
-                "size": "L",
+                "size": "24-32",
                 "mrp": 550,
                 "available_qty": 100
             }
@@ -310,7 +310,7 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 750,
                 "available_qty": 150
             }
@@ -333,7 +333,7 @@
         ],
         "variants": [
             {
-                "size": "L",
+                "size": "24-32",
                 "mrp": 1200,
                 "available_qty": 50
             }
@@ -356,12 +356,12 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 3000,
                 "available_qty": 10
             },
             {
-                "size": "L",
+                "size": "24-44",
                 "mrp": 3200,
                 "available_qty": 8
             }
@@ -384,7 +384,7 @@
         ],
         "variants": [
             {
-                "size": "S",
+                "size": "18-20",
                 "mrp": 4500,
                 "available_qty": 5
             }
@@ -407,7 +407,7 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 2500,
                 "available_qty": 20
             }
@@ -431,7 +431,7 @@
         ],
         "variants": [
             {
-                "size": "Free Size",
+                "size": "24-44 (Adj)",
                 "mrp": 15000,
                 "available_qty": 2
             }
@@ -454,7 +454,7 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 5000,
                 "available_qty": 15
             }
@@ -477,7 +477,7 @@
         ],
         "variants": [
             {
-                "size": "L",
+                "size": "34-46",
                 "mrp": 7000,
                 "available_qty": 8
             }
@@ -500,7 +500,7 @@
         ],
         "variants": [
             {
-                "size": "S",
+                "size": "18-20",
                 "mrp": 900,
                 "available_qty": 50
             }
@@ -522,7 +522,7 @@
         ],
         "variants": [
             {
-                "size": "M",
+                "size": "24-32",
                 "mrp": 650,
                 "available_qty": 60
             }
