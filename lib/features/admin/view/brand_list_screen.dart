@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../provider/admin_provider.dart';
+import '../models/admin_models.dart';
 import 'add_brand_screen.dart';
 
 class BrandListScreen extends ConsumerWidget {
@@ -21,46 +23,15 @@ class BrandListScreen extends ConsumerWidget {
           child: GridView.builder(
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.8,
+              crossAxisCount: 3, // 3 columns as requested
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.85, // Adjusted for compact look
             ),
             itemCount: brands.length,
             itemBuilder: (context, index) {
               final brand = brands[index];
-              return Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                        child: brand.logoUrl != null
-                            ? Image.network(
-                                brand.logoUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => 
-                                    const Center(child: Icon(Icons.broken_image, size: 40, color: Colors.grey)),
-                              )
-                            : const Center(child: Icon(Icons.branding_watermark, size: 40, color: Colors.grey)),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        brand.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              return _BrandItem(brand: brand, index: index);
             },
           ),
         ),
@@ -77,5 +48,104 @@ class BrandListScreen extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
     );
+  }
+}
+
+class _BrandItem extends StatelessWidget {
+  final Brand brand;
+  final int index;
+
+  const _BrandItem({required this.brand, required this.index});
+
+  void _showFullscreen(BuildContext context) {
+    if (brand.logoUrl == null) return;
+    
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (ctx, animation, secondaryAnimation) {
+          return Scaffold(
+            backgroundColor: Colors.black.withValues(alpha: 0.9),
+            body: GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: Center(
+                child: Hero(
+                  tag: 'brand_logo_${brand.id}',
+                  child: Image.network(
+                    brand.logoUrl!,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+        transitionsBuilder: (ctx, anim, secondaryAnim, child) {
+          return FadeTransition(opacity: anim, child: child);
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showFullscreen(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Hero(
+                    tag: 'brand_logo_${brand.id}',
+                    child: brand.logoUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              brand.logoUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.grey),
+                            ),
+                          )
+                        : const Icon(Icons.branding_watermark, size: 40, color: Colors.grey),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                child: Text(
+                  brand.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600, 
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).animate().fade(duration: 400.ms).scale(delay: (50 * index).ms);
   }
 }
