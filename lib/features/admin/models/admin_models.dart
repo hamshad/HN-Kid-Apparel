@@ -65,6 +65,9 @@ class Design {
   final int brandId;
   final String brandName;
   final bool isNew;
+  final DateTime? createdAt;
+  final List<String> images;
+  final List<dynamic> sizePrices;
 
   Design({
     required this.id,
@@ -77,9 +80,32 @@ class Design {
     required this.brandId,
     required this.brandName,
     required this.isNew,
+    this.createdAt,
+    this.images = const [],
+    this.sizePrices = const [],
   });
 
   factory Design.fromJson(Map<String, dynamic> json) {
+    var imgList = <String>[];
+    if (json['Images'] != null) {
+      imgList = List<String>.from(json['Images'].map((x) {
+        if (x is Map) {
+          String url = x['ImageUrl'] ?? '';
+          if (url.isNotEmpty && !url.startsWith('http')) {
+            return '${ApiConstants.baseUrl}$url';
+          }
+          return url;
+        }
+        if (x is String) {
+          if (!x.startsWith('http') && x.isNotEmpty) {
+            return '${ApiConstants.baseUrl}$x';
+          }
+          return x;
+        }
+        return '';
+      }));
+    }
+
     return Design(
       id: json['DesignId'] ?? 0,
       title: json['Title'] ?? '',
@@ -91,6 +117,33 @@ class Design {
       brandId: json['BrandId'] ?? 0,
       brandName: json['BrandName'] ?? '',
       isNew: json['IsNew'] ?? false,
+      createdAt: json['CreatedAt'] != null ? DateTime.tryParse(json['CreatedAt']) : null,
+      images: imgList,
+      sizePrices: json['SizePrices'] ?? [],
+    );
+  }
+}
+
+class DesignImage {
+  final int imageId;
+  final int designId;
+  final String imageUrl;
+
+  DesignImage({
+    required this.imageId,
+    required this.designId,
+    required this.imageUrl,
+  });
+
+  factory DesignImage.fromJson(Map<String, dynamic> json) {
+    String url = json['ImageUrl'] ?? '';
+    if (url.isNotEmpty && !url.startsWith('http')) {
+      url = '${ApiConstants.baseUrl}$url';
+    }
+    return DesignImage(
+      imageId: json['ImageId'] ?? 0,
+      designId: json['DesignId'] ?? 0,
+      imageUrl: url,
     );
   }
 }

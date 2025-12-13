@@ -5,6 +5,7 @@ import '../../../core/services/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/storage_service.dart';
 import '../models/admin_models.dart';
+import '../../../core/utils/fancy_logger.dart';
 
 class AdminService {
   final StorageService _storageService;
@@ -16,7 +17,6 @@ class AdminService {
     final token = await _storageService.getToken();
     return {
       'Authorization': 'Bearer $token',
-      // Content-Type is handled automatically for Multipart, manual for JSON if needed
     };
   }
 
@@ -31,7 +31,9 @@ class AdminService {
       'pageSize': pageSize.toString(),
     });
 
+    FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
+    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -44,15 +46,15 @@ class AdminService {
 
   Future<Map<String, dynamic>> addBrand(String name, File imageFile) async {
     final headers = await _getHeaders();
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}'),
-    );
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}');
+    
+    FancyLogger.apiRequest('POST', uri.toString(), {'Name': name, 'Logo': imageFile.path});
+
+    var request = http.MultipartRequest('POST', uri);
 
     request.headers.addAll(headers);
     request.fields['Name'] = name;
 
-    // Check if file exists to avoid errors
     if (await imageFile.exists()) {
       request.files.add(await http.MultipartFile.fromPath(
         'Logo',
@@ -62,6 +64,8 @@ class AdminService {
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
+    
+    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -81,7 +85,9 @@ class AdminService {
       'pageSize': pageSize.toString(),
     });
 
+    FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
+    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -94,23 +100,26 @@ class AdminService {
 
   Future<Map<String, dynamic>> addCategory(String name, File imageFile) async {
     final headers = await _getHeaders();
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}'),
-    );
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}');
+    
+    FancyLogger.apiRequest('POST', uri.toString(), {'Name': name, 'Image': imageFile.path});
+
+    var request = http.MultipartRequest('POST', uri);
 
     request.headers.addAll(headers);
     request.fields['Name'] = name;
 
     if (await imageFile.exists()) {
       request.files.add(await http.MultipartFile.fromPath(
-        'Image', // Assuming 'Image' based on requirement "Image:{image}"
+        'Image', 
         imageFile.path,
       ));
     }
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
+
+    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -130,7 +139,9 @@ class AdminService {
       'pageSize': pageSize.toString(),
     });
 
+    FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
+    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -145,14 +156,18 @@ class AdminService {
     try {
       final headers = await _getHeaders();
       headers['Content-Type'] = 'application/json';
+      final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}');
+
+      final body = {'Name': name};
+      FancyLogger.apiRequest('POST', uri.toString(), body);
 
       final response = await _client.post(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}'),
+        uri,
         headers: headers,
-        body: jsonEncode({
-          'Name': name,
-        }),
+        body: jsonEncode(body),
       );
+
+      FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body);
@@ -175,7 +190,9 @@ class AdminService {
       'pageSize': pageSize.toString(),
     });
 
+    FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
+    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -195,26 +212,78 @@ class AdminService {
     required bool isNew,
   }) async {
     final headers = await _getHeaders();
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}'),
-    );
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}');
+    
+    final fields = {
+      'Title': title,
+      'DesignNumber': designNumber,
+      'CategoryId': categoryId.toString(),
+      'SeriesId': seriesId.toString(),
+      'BrandId': brandId.toString(),
+      'IsNew': isNew.toString(),
+    };
+    FancyLogger.apiRequest('POST', uri.toString(), fields);
+
+    var request = http.MultipartRequest('POST', uri);
 
     request.headers.addAll(headers);
-    request.fields['Title'] = title;
-    request.fields['DesignNumber'] = designNumber;
-    request.fields['CategoryId'] = categoryId.toString();
-    request.fields['SeriesId'] = seriesId.toString();
-    request.fields['BrandId'] = brandId.toString();
-    request.fields['IsNew'] = isNew.toString();
+    request.fields.addAll(fields);
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
+
+    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to add design: ${response.body}');
+    }
+  }
+
+  Future<Map<String, dynamic>> addDesignImage(int designId, File imageFile) async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId/images');
+
+    FancyLogger.apiRequest('POST', uri.toString(), {'Image': imageFile.path});
+
+    var request = http.MultipartRequest('POST', uri);
+
+    request.headers.addAll(headers);
+
+    if (await imageFile.exists()) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'Image', // API expects 'Image'
+        imageFile.path,
+      ));
+    }
+
+    final streamResponse = await request.send();
+    final response = await http.Response.fromStream(streamResponse);
+
+    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to upload image: ${response.body}');
+    }
+  }
+
+  Future<List<DesignImage>> getDesignImages(int designId) async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId/images');
+
+    FancyLogger.apiRequest('GET', uri.toString());
+    final response = await http.get(uri, headers: headers);
+    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final List<dynamic> data = responseData['Data'] ?? [];
+      return data.map((json) => DesignImage.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load design images: ${response.statusCode}');
     }
   }
 }

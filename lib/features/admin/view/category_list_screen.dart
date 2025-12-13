@@ -15,9 +15,7 @@ class CategoryListScreen extends ConsumerWidget {
     return Scaffold(
       body: categoriesAsync.when(
         data: (categories) => RefreshIndicator(
-          onRefresh: () async {
-            ref.refresh(categoriesProvider(1));
-          },
+          onRefresh: () => ref.refresh(categoriesProvider(1).future),
           child: GridView.builder(
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

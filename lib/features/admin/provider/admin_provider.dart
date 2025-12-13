@@ -136,9 +136,35 @@ class DesignController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
   }
+  Future<void> uploadDesignImages(int designId, List<File> images) async {
+    state = const AsyncLoading();
+    try {
+      for (final image in images) {
+        await _adminService.addDesignImage(designId, image);
+      }
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> uploadDesignImage(int designId, File image) async {
+    state = const AsyncLoading();
+    try {
+      await _adminService.addDesignImage(designId, image);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
 }
 
 final designControllerProvider = StateNotifierProvider<DesignController, AsyncValue<void>>((ref) {
   final adminService = ref.watch(adminServiceProvider);
   return DesignController(adminService);
+});
+
+final designImagesProvider = FutureProvider.autoDispose.family<List<DesignImage>, int>((ref, designId) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getDesignImages(designId);
 });

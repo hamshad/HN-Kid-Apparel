@@ -24,7 +24,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).shadowColor.withOpacity(0.1),
+              color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -33,7 +33,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         child: NavigationBar(
           height: 65,
           backgroundColor: Theme.of(context).colorScheme.surface,
-          indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+          indicatorColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
           selectedIndex: navigationShell.currentIndex,
           onDestinationSelected: (index) => _onTap(context, index),
           labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,

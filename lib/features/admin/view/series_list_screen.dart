@@ -16,9 +16,7 @@ class SeriesListScreen extends ConsumerWidget {
     return Scaffold(
       body: seriesAsync.when(
         data: (seriesList) => RefreshIndicator(
-          onRefresh: () async {
-             ref.refresh(seriesProvider(1));
-          },
+          onRefresh: () => ref.refresh(seriesProvider(1).future),
           child: seriesList.isEmpty 
           ? const Center(child: Text('No Series Found'))
           : ListView.builder( // using ListView for text-heavy items often looks better than grid unless brief, but user asked for "sorta 3x3 grid" for others. Series might be just text. Let's use Grid for consistency if names are short. User said "Series" e.g. "Summer Collection".

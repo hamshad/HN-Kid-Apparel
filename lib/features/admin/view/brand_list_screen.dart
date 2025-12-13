@@ -18,7 +18,7 @@ class BrandListScreen extends ConsumerWidget {
         data: (brands) => RefreshIndicator(
           onRefresh: () async {
             // Invalidate to reload
-             ref.refresh(brandsProvider(1));
+             return ref.refresh(brandsProvider(1).future);
           },
           child: GridView.builder(
             padding: const EdgeInsets.all(16),
