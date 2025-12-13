@@ -47,6 +47,9 @@ class Series {
   Series({required this.id, required this.name});
 
   factory Series.fromJson(Map<String, dynamic> json) {
+    return Series(
+      id: json['SeriesId'] ?? json['Id'] ?? 0,
+      name: json['Name'] ?? '',
     );
   }
 }

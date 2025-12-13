@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/services/mock_data_service.dart';
 import '../../auth/provider/auth_provider.dart';
 import '../../catalog/view/home_screen.dart'; // Reusing productsProvider
-import 'add_product_screen.dart';
 import 'brand_list_screen.dart';
 import 'category_list_screen.dart';
 import 'series_list_screen.dart';
