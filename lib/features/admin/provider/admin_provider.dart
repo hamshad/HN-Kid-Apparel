@@ -168,3 +168,33 @@ final designImagesProvider = FutureProvider.autoDispose.family<List<DesignImage>
   final adminService = ref.watch(adminServiceProvider);
   return adminService.getDesignImages(designId);
 });
+
+// --- Sizes ---
+
+class SizeController extends StateNotifier<AsyncValue<void>> {
+  final AdminService _adminService;
+
+  SizeController(this._adminService) : super(const AsyncData(null));
+
+  Future<Map<String, dynamic>?> addSize(String label) async {
+    state = const AsyncLoading();
+    try {
+      final res = await _adminService.addSize(label);
+      state = const AsyncData(null);
+      return res;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+}
+
+final sizeControllerProvider = StateNotifierProvider<SizeController, AsyncValue<void>>((ref) {
+  final adminService = ref.watch(adminServiceProvider);
+  return SizeController(adminService);
+});
+
+final sizesProvider = FutureProvider.autoDispose.family<List<Size>, int>((ref, page) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getSizes(page, 20);
+});

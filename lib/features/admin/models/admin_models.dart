@@ -135,6 +135,7 @@ class DesignImage {
     required this.imageUrl,
   });
 
+
   factory DesignImage.fromJson(Map<String, dynamic> json) {
     String url = json['ImageUrl'] ?? '';
     if (url.isNotEmpty && !url.startsWith('http')) {
@@ -147,3 +148,18 @@ class DesignImage {
     );
   }
 }
+
+class Size {
+  final int id;
+  final String sizeLabel;
+
+  Size({required this.id, required this.sizeLabel});
+
+  factory Size.fromJson(Map<String, dynamic> json) {
+    return Size(
+      id: json['SizeId'] ?? json['Id'] ?? 0,
+      sizeLabel: json['SizeLabel'] ?? '',
+    );
+  }
+}
+
