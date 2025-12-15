@@ -7,6 +7,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../shared/models/product.dart';
 import '../../../shared/widgets/product_card.dart';
 import '../providers/catalog_provider.dart';
+import '../../../core/constants/api_constants.dart';
+import '../models/category_model.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -16,16 +18,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final List<Map<String, String>> categories = [
-    {'label': 'AFGHANI', 'image': 'https://images.unsplash.com/photo-1623091411315-bd4dc365515c?auto=format&fit=crop&w=300&q=80'}, // Valid Ethnic wear
-    {'label': 'KURTI', 'image': 'https://plus.unsplash.com/premium_photo-1664303847960-586146f906e1?auto=format&fit=crop&w=300&q=80'}, // Valid Kurti/Ethnic
-    {'label': 'PLAZZO', 'image': 'https://images.unsplash.com/photo-1596783935277-380eb9a3e230?auto=format&fit=crop&w=300&q=80'}, // Valid Ethnic pants
-    {'label': 'GOWN', 'image': 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=300&q=80'}, // Valid Gown
-    {'label': 'LEHENGA', 'image': 'https://images.unsplash.com/photo-1583391733958-c7564d3fb496?auto=format&fit=crop&w=300&q=80'}, // Valid Lehenga/Traditional
-    {'label': 'SAREE', 'image': 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80'}, // Valid Saree
-    {'label': 'TOPS', 'image': 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=300&q=80'}, // Valid Tops
-    {'label': 'JEANS', 'image': 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=300&q=80'}, // Valid Jeans
-  ];
+
   String _searchQuery = "";
 
   @override
@@ -53,7 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                      children: [
                        Text(
-                         "HN Apparel",
+                         "HN Kids Apparel",
                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                            fontWeight: FontWeight.bold, 
                            color: Theme.of(context).primaryColor
@@ -115,23 +108,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                    if (_searchQuery.isEmpty) ...[
                       Text('Categories', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
-                      SizedBox(
-                          height: 100,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: categories.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 16),
-                            itemBuilder: (context, index) {
-                              final cat = categories[index];
-                              return _CategoryItem(
-                                label: cat['label']!, 
-                                imageUrl: cat['image']!, 
-                                index: index
+                      // Categories Section
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final categoriesAsync = ref.watch(categoryListProvider);
+                          
+                          return categoriesAsync.when(
+                            data: (categories) {
+                              if (categories.isEmpty) return const SizedBox.shrink();
+                              return SizedBox(
+                                height: 100,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: categories.length,
+                                  separatorBuilder: (_, __) => const SizedBox(width: 16),
+                                  itemBuilder: (context, index) {
+                                    final cat = categories[index];
+                                    return _CategoryItem(
+                                      label: cat.name, 
+                                      imageUrl: cat.imageUrl, 
+                                      index: index
+                                    );
+                                  },
+                                ),
                               );
                             },
-                          ),
-                        ),
-                        const SizedBox(height: 24),
+                            loading: () => const SizedBox(
+                              height: 100,
+                              child: Center(child: CircularProgressIndicator())
+                            ),
+                            error: (error, stack) => const SizedBox.shrink(),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
                    ],
                     Text(_searchQuery.isEmpty ? 'New Arrivals' : 'Search Results', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
@@ -200,6 +210,11 @@ class _CategoryItem extends StatelessWidget {
     // Generate a consistent color based on index
     final color = _colors[index % _colors.length];
     
+    // Construct full image URL
+    final fullImageUrl = imageUrl.startsWith('http') 
+        ? imageUrl 
+        : '${ApiConstants.baseUrl}$imageUrl';
+
     return InkWell(
       onTap: () {
         context.go('/tab-catalog?category=${Uri.encodeComponent(label)}');
@@ -215,14 +230,17 @@ class _CategoryItem extends StatelessWidget {
               shape: BoxShape.circle,
                image: DecorationImage(
                  // Using specific category image
-                 image: NetworkImage(imageUrl),
+                 image: NetworkImage(fullImageUrl),
                  fit: BoxFit.cover,
                  opacity: 0.8,
+                 onError: (_, __) {
+                    // Fallback or error handling if needed
+                 }
                ),
             ),
             child: Center(
               child: Text(
-                label.substring(0, 1), 
+                label.isNotEmpty ? label.substring(0, 1) : '',
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white, shadows: [Shadow(color: Colors.black45, blurRadius: 2)]),
               ),
             ),

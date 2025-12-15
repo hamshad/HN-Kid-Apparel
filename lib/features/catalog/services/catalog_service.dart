@@ -6,6 +6,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../auth/provider/auth_provider.dart';
 import '../models/design_model.dart';
+import '../models/category_model.dart';
 
 final catalogServiceProvider = Provider<CatalogService>((ref) {
   final apiClient = ApiClient();
@@ -43,6 +44,31 @@ class CatalogService {
       return designResponse.data;
     } else {
       throw Exception('Failed to load designs: ${response.statusCode}');
+    }
+  }
+
+  Future<List<Category>> getCategories({int page = 1, int pageSize = 10}) async {
+    final token = await _storageService.getToken();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}')
+        .replace(queryParameters: {
+      'page': page.toString(),
+      'pageSize': pageSize.toString(),
+    });
+
+    final response = await _apiClient.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      final categoryResponse = CategoryResponse.fromJson(json);
+      return categoryResponse.data;
+    } else {
+      throw Exception('Failed to load categories: ${response.statusCode}');
     }
   }
 }
