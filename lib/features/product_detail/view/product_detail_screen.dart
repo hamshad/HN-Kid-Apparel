@@ -220,8 +220,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                          child: Text("$_quantity", style: Theme.of(context).textTheme.titleMedium),
                                        ),
                                        IconButton(
-                                         onPressed: (_quantity < variant.availableQty) 
-                                           ? () => setState(() => _quantity++) : null,
+                                         onPressed: () => setState(() => _quantity++),
                                          icon: const Icon(Icons.add),
                                           color: AppTheme.primary,
                                        ),
@@ -263,8 +262,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
-                          onPressed: (variant.availableQty > 0) 
-                            ? () {
+                          onPressed: () {
                                 final designId = int.tryParse(product.id) ?? 0;
                                 ref.read(cartProvider.notifier).addToCart(
                                   designId: designId, 
@@ -278,8 +276,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                     margin: EdgeInsets.all(16),
                                   ),
                                 );
-                              } 
-                            : null,
+                              },
                           child: const Text("Add to Cart", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
