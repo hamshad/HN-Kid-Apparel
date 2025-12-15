@@ -120,4 +120,27 @@ class CartItem {
   }
   
   Map<String, dynamic> toJson() => _$CartItemToJson(this);
+  
+  // CopyWith method for easier object manipulation
+  CartItem copyWith({
+    int? cartItemId,
+    int? cartId,
+    int? designId,
+    String? designName,
+    String? designImageUrl,
+    int? sizeId,
+    String? sizeLabel,
+    int? quantity,
+  }) {
+    return CartItem(
+      cartItemId: cartItemId ?? this.cartItemId,
+      cartId: cartId ?? this.cartId,
+      designId: designId ?? this.designId,
+      designName: designName ?? this.designName,
+      designImageUrl: designImageUrl ?? this.designImageUrl,
+      sizeId: sizeId ?? this.sizeId,
+      sizeLabel: sizeLabel ?? this.sizeLabel,
+      quantity: quantity ?? this.quantity,
+    );
+  }
 }

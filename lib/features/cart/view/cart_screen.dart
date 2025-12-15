@@ -22,8 +22,8 @@ class CartScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(cartProvider);
-          await ref.read(cartProvider.future);
+          // Use ref.refresh for AsyncNotifier instead of invalidate
+          await ref.refresh(cartProvider.future);
         },
         child: cartAsync.when(
         data: (cart) {
@@ -55,26 +55,34 @@ class CartScreen extends ConsumerWidget {
   }
 
   Widget _buildEmptyCart(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text('Your cart is empty', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/');
-              }
-            },
-            child: const Text('Start Shopping'),
+    // Wrap in ListView to make it scrollable for RefreshIndicator
+    return ListView(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height - 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                Text('Your cart is empty', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/');
+                    }
+                  },
+                  child: const Text('Start Shopping'),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -186,10 +194,23 @@ class _CartItemTile extends ConsumerWidget {
                         IconButton(
                           icon: const Icon(Icons.remove, size: 16),
                           onPressed: item.quantity > 1 
-                              ? () => ref.read(cartProvider.notifier).updateQuantity(
-                                  cartItemId: item.cartItemId, 
-                                  quantity: item.quantity - 1
-                                )
+                              ? () async {
+                                  try {
+                                    await ref.read(cartProvider.notifier).updateQuantity(
+                                      cartItemId: item.cartItemId, 
+                                      quantity: item.quantity - 1
+                                    );
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Failed to update quantity: ${e.toString()}'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                }
                               : null,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -197,10 +218,23 @@ class _CartItemTile extends ConsumerWidget {
                         Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold)),
                         IconButton(
                           icon: const Icon(Icons.add, size: 16),
-                          onPressed: () => ref.read(cartProvider.notifier).updateQuantity(
-                              cartItemId: item.cartItemId, 
-                              quantity: item.quantity + 1
-                            ),
+                          onPressed: () async {
+                            try {
+                              await ref.read(cartProvider.notifier).updateQuantity(
+                                cartItemId: item.cartItemId, 
+                                quantity: item.quantity + 1
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to update quantity: ${e.toString()}'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                         ),

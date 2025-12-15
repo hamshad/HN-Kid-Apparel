@@ -7,11 +7,11 @@ final cartProvider = AsyncNotifierProvider<CartNotifier, Cart>(() {
 });
 
 class CartNotifier extends AsyncNotifier<Cart> {
-  late final CartService _cartService;
+  // Use a getter instead of late final to avoid reinitialization issues
+  CartService get _cartService => ref.read(cartServiceProvider);
 
   @override
   Future<Cart> build() async {
-    _cartService = ref.read(cartServiceProvider);
     return _cartService.getCart();
   }
 
@@ -39,9 +39,40 @@ class CartNotifier extends AsyncNotifier<Cart> {
     required int cartItemId,
     required int quantity,
   }) async {
-    // Optimistic update could be complex with TotalAmount.
-    // Simple approach: call API then refresh.
-    await _cartService.updateCartItem(cartItemId: cartItemId, quantity: quantity);
-    await refreshCart();
+    // Get the current state for rollback if needed
+    final previousState = state;
+    
+    // Optimistic update: immediately update the UI
+    state.whenData((cart) {
+      final updatedItems = cart.cartItems.map((item) {
+        return item.cartItemId == cartItemId 
+            ? item.copyWith(quantity: quantity)
+            : item;
+      }).toList();
+      
+      // Update the state with the new items
+      // Note: TotalAmount will be recalculated when we refresh from API
+      // For now, we keep the old total (it will be corrected after API call)
+      state = AsyncValue.data(Cart(
+        cartId: cart.cartId,
+        userId: cart.userId,
+        createdAt: cart.createdAt,
+        cartItems: updatedItems,
+        totalAmount: cart.totalAmount, // Keep old total temporarily
+      ));
+    });
+    
+    // Make the API call in the background
+    try {
+      await _cartService.updateCartItem(cartItemId: cartItemId, quantity: quantity);
+      // Silently refresh to get the correct total amount
+      final updatedCart = await _cartService.getCart();
+      state = AsyncValue.data(updatedCart);
+    } catch (e, st) {
+      // If the API call fails, revert to the previous state
+      state = previousState;
+      // Re-throw the error so the UI can show an error message if needed
+      rethrow;
+    }
   }
 }

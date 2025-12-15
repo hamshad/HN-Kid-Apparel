@@ -21,8 +21,7 @@ class WishlistScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(wishlistProvider);
-          await ref.read(wishlistProvider.future);
+          await ref.refresh(wishlistProvider.future);
         },
         child: wishlistAsync.when(
         data: (items) => items.isEmpty
@@ -44,25 +43,33 @@ class WishlistScreen extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.favorite_border, size: 64, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'Your wishlist is empty',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.grey[600],
+    // Wrap in ListView to make it scrollable for RefreshIndicator
+    return ListView(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height - 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.favorite_border, size: 64, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                Text(
+                  'Your wishlist is empty',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.grey[600],
+                      ),
                 ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => context.go('/'),
+                  child: const Text('Start Explore'),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => context.go('/'),
-            child: const Text('Start Explore'),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

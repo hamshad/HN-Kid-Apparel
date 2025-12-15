@@ -24,8 +24,7 @@ class OrdersScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(ordersProvider);
-          await ref.read(ordersProvider.future);
+          await ref.refresh(ordersProvider.future);
         },
         child: ordersFuture.when(
         data: (orders) => orders.isEmpty
