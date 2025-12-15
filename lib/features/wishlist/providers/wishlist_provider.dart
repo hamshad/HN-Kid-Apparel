@@ -7,7 +7,7 @@ final wishlistProvider = AsyncNotifierProvider<WishlistNotifier, List<WishlistIt
 });
 
 class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
-  late final WishlistService _wishlistService;
+  late WishlistService _wishlistService;
 
   @override
   Future<List<WishlistItem>> build() async {
