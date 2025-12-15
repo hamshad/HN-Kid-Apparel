@@ -163,3 +163,31 @@ class Size {
   }
 }
 
+class ProductSizePrice {
+  final int pspId;
+  final int designId;
+  final String designName;
+  final int sizeId;
+  final String sizeName;
+  final double price;
+
+  ProductSizePrice({
+    required this.pspId,
+    required this.designId,
+    required this.designName,
+    required this.sizeId,
+    required this.sizeName,
+    required this.price,
+  });
+
+  factory ProductSizePrice.fromJson(Map<String, dynamic> json) {
+    return ProductSizePrice(
+      pspId: json['PSPId'] ?? 0,
+      designId: json['DesignId'] ?? 0,
+      designName: json['DesignName'] ?? '',
+      sizeId: json['SizeId'] ?? 0,
+      sizeName: json['SizeName'] ?? '',
+      price: (json['Price'] ?? 0).toDouble(),
+    );
+  }
+}

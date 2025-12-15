@@ -198,3 +198,45 @@ final sizesProvider = FutureProvider.autoDispose.family<List<Size>, int>((ref, p
   final adminService = ref.watch(adminServiceProvider);
   return adminService.getSizes(page, 20);
 });
+
+// --- Product Size Price ---
+
+class ProductSizePriceController extends StateNotifier<AsyncValue<void>> {
+  final AdminService _adminService;
+
+  ProductSizePriceController(this._adminService) : super(const AsyncData(null));
+
+  Future<Map<String, dynamic>?> addProductSizePrice(int designId, int sizeId, double price) async {
+    state = const AsyncLoading();
+    try {
+      final res = await _adminService.addProductSizePrice(designId, sizeId, price);
+      state = const AsyncData(null);
+      return res;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+}
+
+final productSizePriceControllerProvider = StateNotifierProvider<ProductSizePriceController, AsyncValue<void>>((ref) {
+  final adminService = ref.watch(adminServiceProvider);
+  return ProductSizePriceController(adminService);
+});
+
+final productSizePricesProvider = FutureProvider.autoDispose.family<List<ProductSizePrice>, int>((ref, page) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getProductSizePrices(page, 20);
+});
+
+// Providers for Dropdowns (fetch larger list)
+final allDesignsProvider = FutureProvider.autoDispose<List<Design>>((ref) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getDesigns(1, 100);
+});
+
+final allSizesProvider = FutureProvider.autoDispose<List<Size>>((ref) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getSizes(1, 100);
+});
+

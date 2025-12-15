@@ -8,4 +8,5 @@ class ApiConstants {
   static const String seriesEndpoint = '/api/Series';
   static const String designEndpoint = '/api/Design';
   static const String sizeEndpoint = '/api/Size';
+  static const String productSizePriceEndpoint = '/api/ProductSizePrice';
 }

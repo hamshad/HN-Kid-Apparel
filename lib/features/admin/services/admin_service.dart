@@ -332,4 +332,55 @@ class AdminService {
       throw Exception('Failed to add size: ${response.body}');
     }
   }
+
+  // --- Product Size Price ---
+
+  Future<List<ProductSizePrice>> getProductSizePrices(int page, int pageSize) async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse(
+            '${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}')
+        .replace(queryParameters: {
+      'page': page.toString(),
+      'pageSize': pageSize.toString(),
+    });
+
+    FancyLogger.apiRequest('GET', uri.toString());
+    final response = await http.get(uri, headers: headers);
+    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final List<dynamic> data = responseData['Data'] ?? [];
+      return data.map((json) => ProductSizePrice.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load product size prices: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> addProductSizePrice(int designId, int sizeId, double price) async {
+    final headers = await _getHeaders();
+    headers['Content-Type'] = 'application/json';
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}');
+    
+    final body = {
+      'DesignId': designId,
+      'SizeId': sizeId,
+      'Price': price,
+    };
+    FancyLogger.apiRequest('POST', uri.toString(), body);
+
+    final response = await http.post(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to add product size price: ${response.body}');
+    }
+  }
 }
