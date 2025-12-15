@@ -7,6 +7,7 @@ import '../../../core/services/mock_data_service.dart';
 import '../../../shared/models/product.dart';
 import '../../cart/providers/cart_provider.dart';
 import '../../catalog/providers/catalog_provider.dart';
+import '../../wishlist/providers/wishlist_provider.dart';
 
 import '../../../core/theme/app_theme.dart';
 
@@ -30,6 +31,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       appBar: AppBar(
         title: const Text('Product Details'),
         actions: [
+          Consumer(builder: (context, ref, child) {
+            final designId = int.tryParse(widget.id) ?? 0;
+            final isLiked = ref.watch(wishlistProvider.select(
+              (value) => value.valueOrNull?.any((item) => item.designId == designId) ?? false
+            ));
+            return IconButton(
+              icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border, color: isLiked ? Colors.red : null),
+              onPressed: () => ref.read(wishlistProvider.notifier).toggleWishlist(designId),
+            );
+          }),
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
             onPressed: () => context.push('/cart'), // Push to keep back stack

@@ -11,4 +11,6 @@ class ApiConstants {
   static const String productSizePriceEndpoint = '/api/ProductSizePrice';
   static const String cartEndpoint = '/api/Cart';
   static const String cartItemsEndpoint = '/api/Cart/items';
+  static const String wishlistEndpoint = '/api/Wishlist';
+  static const String myWishlistEndpoint = '/api/Wishlist/my-wishlist';
 }

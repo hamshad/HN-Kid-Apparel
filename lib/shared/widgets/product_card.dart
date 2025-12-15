@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/wishlist/providers/wishlist_provider.dart';
 import '../models/product.dart';
 
-class ProductCard extends StatefulWidget {
+class ProductCard extends ConsumerStatefulWidget {
   final Product product;
 
   const ProductCard({super.key, required this.product});
 
   @override
-  State<ProductCard> createState() => _ProductCardState();
+  ConsumerState<ProductCard> createState() => _ProductCardState();
 }
 
-class _ProductCardState extends State<ProductCard> {
-  bool isLiked = false;
+class _ProductCardState extends ConsumerState<ProductCard> {
 
   void _toggleLike() {
-    setState(() {
-      isLiked = !isLiked;
-    });
+    final designId = int.tryParse(widget.product.id);
+    if (designId != null) {
+      ref.read(wishlistProvider.notifier).toggleWishlist(designId);
+    }
   }
 
   void _shareProduct() {
@@ -94,6 +96,11 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final designId = int.tryParse(widget.product.id) ?? 0;
+    final isLiked = ref.watch(wishlistProvider.select(
+      (value) => value.valueOrNull?.any((item) => item.designId == designId) ?? false
+    ));
+
     return GestureDetector(
       onTap: () => context.go('/product/${widget.product.id}'),
       child: Card(

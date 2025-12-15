@@ -3,16 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/services/mock_data_service.dart';
-import '../../../shared/models/product.dart';
-
-// Mock Provider for Wishlist since we don't have a real one yet
-final wishlistProvider = FutureProvider<List<Product>>((ref) async {
-  // Just return first 4 products as "mock" wishlist
-  final service = ref.watch(mockDataServiceProvider);
-  final allProducts = await service.getProducts();
-  return allProducts.take(4).toList(); 
-});
+import '../providers/wishlist_provider.dart';
+import '../models/wishlist_model.dart';
+// import '../../cart/providers/cart_provider.dart'; // Future integration to move to cart
 
 class WishlistScreen extends ConsumerWidget {
   const WishlistScreen({super.key});
@@ -27,15 +20,15 @@ class WishlistScreen extends ConsumerWidget {
         elevation: 0,
       ),
       body: wishlistAsync.when(
-        data: (products) => products.isEmpty
+        data: (items) => items.isEmpty
             ? _buildEmptyState(context)
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
-                itemCount: products.length,
+                itemCount: items.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 16),
                 itemBuilder: (context, index) {
-                  final product = products[index];
-                  return _buildWishlistItem(context, product, index);
+                  final item = items[index];
+                  return _buildWishlistItem(context, ref, item, index);
                 },
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -67,14 +60,14 @@ class WishlistScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWishlistItem(BuildContext context, Product product, int index) {
+  Widget _buildWishlistItem(BuildContext context, WidgetRef ref, WishlistItem item, int index) {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withOpacity(0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4)
             )
@@ -83,7 +76,7 @@ class WishlistScreen extends ConsumerWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => context.push('/product/${product.id}'),
+          onTap: () => context.push('/product/${item.designId}'),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -91,14 +84,15 @@ class WishlistScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Hero(
-                  tag: 'wishlist_${product.id}',
+                  tag: 'wishlist_${item.designId}',
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: CachedNetworkImage(
-                      imageUrl: product.images.first,
+                      imageUrl: item.designImageUrl,
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => const Icon(Icons.error),
                     ),
                   ),
                 ),
@@ -108,7 +102,7 @@ class WishlistScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.title,
+                        item.designName,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -117,30 +111,24 @@ class WishlistScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '\$${product.variants.first.mrp}',
+                        item.basePrice != null 
+                            ? '₹${item.basePrice!.toStringAsFixed(0)}' 
+                            : 'Price not set',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).primaryColor,
+                              color: item.basePrice != null 
+                                  ? Theme.of(context).primaryColor 
+                                  : Colors.grey,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                            Text(
-                              'In Stock',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.green),
-                            )
-                        ],
-                      )
+                      // Access to cart integration could go here
                     ],
                   ),
                 ),
                 IconButton(
                   onPressed: () {
-                    // Mock remove action
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Mock: Removed from wishlist"))
-                    );
+                    ref.read(wishlistProvider.notifier).toggleWishlist(item.designId);
                   }, 
                   icon: const Icon(Icons.delete_outline, color: Colors.grey)
                 )
