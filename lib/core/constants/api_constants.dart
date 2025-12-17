@@ -15,4 +15,5 @@ class ApiConstants {
   static const String wishlistEndpoint = '/api/Wishlist';
   static const String myWishlistEndpoint = '/api/Wishlist/my-wishlist';
   static const String userEndpoint = '/api/User';
+  static const String orderEndpoint = '/api/Order';
 }

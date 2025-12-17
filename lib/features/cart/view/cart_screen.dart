@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/cart_provider.dart';
+import '../providers/order_provider.dart';
 import '../models/cart_model.dart';
+
 
 
 class CartScreen extends ConsumerWidget {
@@ -41,7 +43,7 @@ class CartScreen extends ConsumerWidget {
                   },
                 ),
               ),
-              _buildSummary(context, cart),
+              _buildSummary(context, ref, cart),
             ],
           );
         },
@@ -84,7 +86,7 @@ class CartScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummary(BuildContext context, Cart cart) {
+  Widget _buildSummary(BuildContext context, WidgetRef ref, Cart cart) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -118,11 +120,94 @@ class CartScreen extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                   // Place order logic would go here
-                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Checkout not implemented yet")));
+                onPressed: () async {
+                  final orderNotifier = ref.read(orderProvider.notifier);
+                  
+                  try {
+                    // Show loading indicator
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                    
+                    // Place the order
+                    await orderNotifier.placeOrder();
+                    
+                    // Close loading dialog
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                    
+                    // Get the order result
+                    final orderState = ref.read(orderProvider);
+                    
+                    orderState.when(
+                      data: (order) {
+                        if (order != null && context.mounted) {
+                          // Show success dialog
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Order Placed Successfully!'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Order Number: ${order.orderNumber}'),
+                                  const SizedBox(height: 8),
+                                  Text('Total Items: ${order.totalQty}'),
+                                  const SizedBox(height: 8),
+                                  Text('Status: ${order.status}'),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    // Refresh cart to clear it
+                                    ref.read(cartProvider.notifier).refreshCart();
+                                    // Reset order state
+                                    orderNotifier.reset();
+                                  },
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                      loading: () {},
+                      error: (err, stack) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to place order: $err'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                    );
+                  } catch (e) {
+                    // Close loading dialog if still open
+                    if (context.mounted && Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
+                    
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to place order: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
-                child: const Text('Checkout'),
+                child: const Text('Order'),
               ),
             ),
           ],
