@@ -10,6 +10,9 @@ class RegisterRequest {
   final String password;
   final String confirmPassword;
   final String role;
+  final String? shopName;
+  final String? address;
+  final String? gst;
 
   RegisterRequest({
     required this.name,
@@ -18,16 +21,34 @@ class RegisterRequest {
     required this.password,
     required this.confirmPassword,
     required this.role,
+    this.shopName,
+    this.address,
+    this.gst,
   });
 
-  Map<String, dynamic> toJson() => {
-        'Name': name,
-        'Email': email,
-        'PhoneNumber': phoneNumber,
-        'Password': password,
-        'ConfirmPassword': confirmPassword,
-        'Role': role,
-      };
+  Map<String, dynamic> toJson() {
+    final json = {
+      'Name': name,
+      'Email': email,
+      'PhoneNumber': phoneNumber,
+      'Password': password,
+      'ConfirmPassword': confirmPassword,
+      'Role': role,
+    };
+    
+    // Only include optional fields if they are not null and not empty
+    if (shopName != null && shopName!.isNotEmpty) {
+      json['ShopName'] = shopName!;
+    }
+    if (address != null && address!.isNotEmpty) {
+      json['Address'] = address!;
+    }
+    if (gst != null && gst!.isNotEmpty) {
+      json['GST'] = gst!;
+    }
+    
+    return json;
+  }
 }
 
 /// Response model for registration API

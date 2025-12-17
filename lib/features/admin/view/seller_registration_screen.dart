@@ -27,6 +27,9 @@ class _SellerRegistrationFormState
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _shopNameController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _gstController = TextEditingController();
 
   String _selectedRole = 'wholesaler';
   bool _isLoading = false;
@@ -40,6 +43,9 @@ class _SellerRegistrationFormState
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _shopNameController.dispose();
+    _addressController.dispose();
+    _gstController.dispose();
     super.dispose();
   }
 
@@ -102,6 +108,9 @@ class _SellerRegistrationFormState
         password: _passwordController.text,
         confirmPassword: _confirmPasswordController.text,
         role: _selectedRole,
+        shopName: _shopNameController.text.trim().isEmpty ? null : _shopNameController.text.trim(),
+        address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+        gst: _gstController.text.trim().isEmpty ? null : _gstController.text.trim(),
       );
 
       final response = await authService.registerSeller(request);
@@ -125,6 +134,9 @@ class _SellerRegistrationFormState
         _phoneController.clear();
         _passwordController.clear();
         _confirmPasswordController.clear();
+        _shopNameController.clear();
+        _addressController.clear();
+        _gstController.clear();
         setState(() {
           _selectedRole = 'wholesaler';
         });
@@ -284,6 +296,41 @@ class _SellerRegistrationFormState
                     _selectedRole = value!;
                   });
                 },
+              ),
+              const SizedBox(height: 16),
+
+              // Shop Name field (optional)
+              TextFormField(
+                controller: _shopNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Shop Name (Optional)',
+                  prefixIcon: Icon(Icons.store),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Address field (optional)
+              TextFormField(
+                controller: _addressController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Address (Optional)',
+                  prefixIcon: Icon(Icons.location_on),
+                  border: OutlineInputBorder(),
+                  alignLabelWithHint: true,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // GST field (optional)
+              TextFormField(
+                controller: _gstController,
+                decoration: const InputDecoration(
+                  labelText: 'GST Number (Optional)',
+                  prefixIcon: Icon(Icons.business),
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 32),
 
