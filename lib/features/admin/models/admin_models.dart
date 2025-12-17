@@ -4,8 +4,9 @@ class Brand {
   final int id;
   final String name;
   final String? logoUrl;
+  final bool isActive;
 
-  Brand({required this.id, required this.name, this.logoUrl});
+  Brand({required this.id, required this.name, this.logoUrl, this.isActive = true});
 
   factory Brand.fromJson(Map<String, dynamic> json) {
     String? logo = json['LogoUrl'];
@@ -16,6 +17,7 @@ class Brand {
       id: json['BrandId'] ?? json['Id'] ?? 0,
       name: json['Name'] ?? '',
       logoUrl: logo,
+      isActive: json['IsActive'] ?? true,
     );
   }
 }

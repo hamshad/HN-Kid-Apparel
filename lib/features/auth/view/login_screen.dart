@@ -214,8 +214,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
+
                           ),
                         ),
+
                     ),
                   ),
                   

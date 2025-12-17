@@ -74,6 +74,42 @@ class AdminService {
     }
   }
 
+  Future<Map<String, dynamic>> updateBrand({
+    required int id,
+    required String name,
+    File? imageFile,
+    required bool isActive,
+  }) async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}/$id');
+    
+    FancyLogger.apiRequest('PUT', uri.toString(), {'Name': name, 'Logo': imageFile?.path, 'IsActive': isActive});
+
+    var request = http.MultipartRequest('PUT', uri);
+
+    request.headers.addAll(headers);
+    request.fields['Name'] = name;
+    request.fields['IsActive'] = isActive.toString();
+
+    if (imageFile != null && await imageFile.exists()) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'Logo',
+        imageFile.path,
+      ));
+    }
+
+    final streamResponse = await request.send();
+    final response = await http.Response.fromStream(streamResponse);
+    
+    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update brand: ${response.body}');
+    }
+  }
+
   // --- Categories ---
 
   Future<List<Category>> getCategories(int page, int pageSize) async {
