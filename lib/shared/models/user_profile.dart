@@ -73,13 +73,13 @@ class UpdateProfileRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'Mobile': mobile ?? "string",
-      'Email': email ?? "string",
-      'FullName': fullName ?? "string",
-      'ShopName': shopName ?? "string",
-      'Address': address ?? "string",
-      'GST': gst ?? "string",
-      'IsActive': isActive ?? true,
+      if (mobile != null) 'Mobile': mobile,
+      if (email != null) 'Email': email,
+      if (fullName != null) 'FullName': fullName,
+      if (shopName != null) 'ShopName': shopName,
+      if (address != null) 'Address': address,
+      if (gst != null) 'GST': gst,
+      if (isActive != null) 'IsActive': isActive,
     };
   }
 }

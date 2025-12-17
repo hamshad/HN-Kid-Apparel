@@ -94,7 +94,7 @@ class AuthService {
     }
   }
 
-  Future<AuthResponse> updateProfile(UpdateProfileRequest request) async {
+  Future<UserProfileResponse> updateProfile(UpdateProfileRequest request) async {
     try {
       final token = await _storage.getToken();
       final response = await _client.put(
@@ -107,9 +107,9 @@ class AuthService {
       );
 
       final Map<String, dynamic> body = jsonDecode(response.body);
-      return AuthResponse.fromJson(body); 
+      return UserProfileResponse.fromJson(body); 
     } catch (e) {
-      return AuthResponse(
+      return UserProfileResponse(
         success: false,
         message: 'Network error: $e',
         statusCode: 500,

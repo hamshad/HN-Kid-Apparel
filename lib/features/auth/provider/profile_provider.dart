@@ -6,22 +6,26 @@ class ProfileState {
   final UserProfile? profile;
   final bool isLoading;
   final String? error;
+  final String? successMessage;
 
   const ProfileState({
     this.profile,
     this.isLoading = false,
     this.error,
+    this.successMessage,
   });
 
   ProfileState copyWith({
     UserProfile? profile,
     bool? isLoading,
     String? error,
+    String? successMessage,
   }) {
     return ProfileState(
       profile: profile ?? this.profile,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      successMessage: successMessage,
     );
   }
 }
@@ -55,27 +59,30 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     }
   }
 
-  Future<bool> updateProfile(UpdateProfileRequest request) async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<String?> updateProfile(UpdateProfileRequest request) async {
+    state = state.copyWith(isLoading: true, error: null, successMessage: null);
     try {
       final response = await _authService.updateProfile(request);
       if (response.success) {
         // Refresh profile after successful update
         await fetchProfile();
-        return true;
+        state = state.copyWith(
+          successMessage: response.message ?? 'Profile updated successfully',
+        );
+        return response.message ?? 'Profile updated successfully';
       } else {
         state = state.copyWith(
           isLoading: false,
           error: response.message ?? 'Failed to update profile',
         );
-        return false;
+        return null;
       }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: 'Error: $e',
       );
-      return false;
+      return null;
     }
   }
 }

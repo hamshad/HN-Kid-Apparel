@@ -19,7 +19,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController _shopNameController;
   late TextEditingController _addressController;
   late TextEditingController _gstController;
-  bool _isActive = true;
+
 
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _shopNameController = TextEditingController(text: profile?.shopName ?? '');
     _addressController = TextEditingController(text: profile?.address ?? '');
     _gstController = TextEditingController(text: profile?.gst ?? '');
-    _isActive = profile?.isActive ?? true;
+
   }
 
   @override
@@ -55,14 +55,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         shopName: _shopNameController.text,
         address: _addressController.text,
         gst: _gstController.text,
-        isActive: _isActive,
+        isActive: true,
       );
 
-      final success = await ref.read(profileProvider.notifier).updateProfile(request);
+      final serverMessage = await ref.read(profileProvider.notifier).updateProfile(request);
 
-      if (success && mounted) {
+      if (serverMessage != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
+          SnackBar(content: Text(serverMessage)),
         );
         Navigator.pop(context);
       } else {
@@ -123,12 +123,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 controller: _gstController,
                 decoration: const InputDecoration(labelText: 'GST Number'),
               ),
-               const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Is Active'),
-                value: _isActive,
-                onChanged: (val) => setState(() => _isActive = val),
-              ),
+
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
