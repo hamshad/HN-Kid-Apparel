@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/admin_models.dart';
 import '../provider/admin_provider.dart';
+import 'edit_design_screen.dart';
 
 class DesignDetailScreen extends ConsumerWidget {
   final Design design;
@@ -18,6 +19,19 @@ class DesignDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditDesignScreen(design: design),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(

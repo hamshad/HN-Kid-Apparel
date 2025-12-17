@@ -71,6 +71,7 @@ class Design {
   final int brandId;
   final String brandName;
   final bool isNew;
+  final bool isActive;
   final DateTime? createdAt;
   final List<String> images;
   final List<dynamic> sizePrices;
@@ -86,6 +87,7 @@ class Design {
     required this.brandId,
     required this.brandName,
     required this.isNew,
+    this.isActive = true,
     this.createdAt,
     this.images = const [],
     this.sizePrices = const [],
@@ -123,6 +125,7 @@ class Design {
       brandId: json['BrandId'] ?? 0,
       brandName: json['BrandName'] ?? '',
       isNew: json['IsNew'] ?? false,
+      isActive: json['IsActive'] ?? true,
       createdAt: json['CreatedAt'] != null ? DateTime.tryParse(json['CreatedAt']) : null,
       images: imgList,
       sizePrices: json['SizePrices'] ?? [],

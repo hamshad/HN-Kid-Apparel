@@ -404,6 +404,66 @@ class AdminService {
     }
   }
 
+  Future<Map<String, dynamic>> updateDesign({
+    required int id,
+    required String title,
+    required String designNumber,
+    required int categoryId,
+    required int seriesId,
+    required int brandId,
+    required bool isNew,
+    required bool isActive,
+  }) async {
+    final headers = await _getHeaders();
+    headers['Content-Type'] = 'application/json';
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$id');
+    
+    final body = {
+      'Title': title,
+      'DesignNumber': designNumber,
+      'CategoryId': categoryId,
+      'SeriesId': seriesId,
+      'BrandId': brandId,
+      'IsNew': isNew,
+      'IsActive': isActive,
+    };
+    FancyLogger.apiRequest('PUT', uri.toString(), body);
+
+    final response = await http.put(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update product: ${response.body}');
+    }
+  }
+
+  Future<void> deleteDesign(int id) async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$id');
+
+    FancyLogger.apiRequest('DELETE', uri.toString());
+    final response = await http.delete(uri, headers: headers);
+    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      String errorMessage = 'Failed to delete design';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic> && body['Message'] != null) {
+          errorMessage = body['Message'];
+        }
+      } catch (_) {}
+      throw Exception(errorMessage);
+    }
+  }
+
   Future<Map<String, dynamic>> addDesignImage(int designId, File imageFile) async {
     final headers = await _getHeaders();
     final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId/images');

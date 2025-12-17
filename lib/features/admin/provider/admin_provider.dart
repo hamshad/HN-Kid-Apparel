@@ -235,6 +235,48 @@ class DesignController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
   }
+  Future<Map<String, dynamic>?> updateDesign({
+    required int id,
+    required String title,
+    required String designNumber,
+    required int categoryId,
+    required int seriesId,
+    required int brandId,
+    required bool isNew,
+    required bool isActive,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final res = await _adminService.updateDesign(
+        id: id,
+        title: title,
+        designNumber: designNumber,
+        categoryId: categoryId,
+        seriesId: seriesId,
+        brandId: brandId,
+        isNew: isNew,
+        isActive: isActive,
+      );
+      state = const AsyncData(null);
+      return res;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+
+  Future<String?> deleteDesign(int id) async {
+    state = const AsyncLoading();
+    try {
+      await _adminService.deleteDesign(id);
+      state = const AsyncData(null);
+      return null;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
   Future<void> uploadDesignImages(int designId, List<File> images) async {
     state = const AsyncLoading();
     try {
@@ -332,6 +374,21 @@ final productSizePricesProvider = FutureProvider.autoDispose.family<List<Product
 final allDesignsProvider = FutureProvider.autoDispose<List<Design>>((ref) async {
   final adminService = ref.watch(adminServiceProvider);
   return adminService.getDesigns(1, 100);
+});
+
+final allBrandsProvider = FutureProvider.autoDispose<List<Brand>>((ref) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getBrands(1, 100);
+});
+
+final allCategoriesProvider = FutureProvider.autoDispose<List<Category>>((ref) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getCategories(1, 100);
+});
+
+final allSeriesProvider = FutureProvider.autoDispose<List<Series>>((ref) async {
+  final adminService = ref.watch(adminServiceProvider);
+  return adminService.getSeries(1, 100);
 });
 
 final allSizesProvider = FutureProvider.autoDispose<List<Size>>((ref) async {
