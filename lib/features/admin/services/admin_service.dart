@@ -186,6 +186,62 @@ class AdminService {
     }
   }
 
+  Future<Map<String, dynamic>> updateCategory({
+    required int id,
+    required String name,
+    File? imageFile,
+    required bool isActive,
+  }) async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}/$id');
+    
+    FancyLogger.apiRequest('PUT', uri.toString(), {'Name': name, 'Image': imageFile?.path, 'IsActive': isActive});
+
+    var request = http.MultipartRequest('PUT', uri);
+
+    request.headers.addAll(headers);
+    request.fields['Name'] = name;
+    request.fields['IsActive'] = isActive.toString();
+
+    if (imageFile != null && await imageFile.exists()) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'Image',
+        imageFile.path,
+      ));
+    }
+
+    final streamResponse = await request.send();
+    final response = await http.Response.fromStream(streamResponse);
+    
+    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update category: ${response.body}');
+    }
+  }
+
+  Future<void> deleteCategory(int id) async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}/$id');
+
+    FancyLogger.apiRequest('DELETE', uri.toString());
+    final response = await http.delete(uri, headers: headers);
+    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      String errorMessage = 'Failed to delete category';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic> && body['Message'] != null) {
+          errorMessage = body['Message'];
+        }
+      } catch (_) {}
+      throw Exception(errorMessage);
+    }
+  }
+
   // --- Series ---
 
   Future<List<Series>> getSeries(int page, int pageSize) async {

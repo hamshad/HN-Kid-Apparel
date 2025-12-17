@@ -26,8 +26,9 @@ class Category {
   final int id;
   final String name;
   final String? imageUrl;
+  final bool isActive;
 
-  Category({required this.id, required this.name, this.imageUrl});
+  Category({required this.id, required this.name, this.imageUrl, this.isActive = true});
 
   factory Category.fromJson(Map<String, dynamic> json) {
     String? img = json['ImageUrl'];
@@ -38,6 +39,7 @@ class Category {
       id: json['CategoryId'] ?? json['Id'] ?? 0,
       name: json['Name'] ?? '',
       imageUrl: img,
+      isActive: json['IsActive'] ?? true,
     );
   }
 }

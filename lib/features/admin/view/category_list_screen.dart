@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../provider/admin_provider.dart';
 import '../models/admin_models.dart';
 import 'add_category_screen.dart';
+import 'edit_category_screen.dart';
 
 class CategoryListScreen extends ConsumerWidget {
   const CategoryListScreen({super.key});
@@ -102,7 +103,15 @@ class _CategoryItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _showFullscreen(context),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditCategoryScreen(category: category),
+              ),
+            );
+          },
+          onLongPress: () => _showFullscreen(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

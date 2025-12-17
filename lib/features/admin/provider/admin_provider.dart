@@ -96,6 +96,39 @@ class CategoryController extends StateNotifier<AsyncValue<void>> {
       return null;
     }
   }
+  Future<Map<String, dynamic>?> updateCategory({
+    required int id,
+    required String name,
+    File? imageFile,
+    required bool isActive,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      final res = await _adminService.updateCategory(
+        id: id,
+        name: name,
+        imageFile: imageFile,
+        isActive: isActive
+      );
+      state = const AsyncData(null);
+      return res;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return null;
+    }
+  }
+
+  Future<String?> deleteCategory(int id) async {
+    state = const AsyncLoading();
+    try {
+      await _adminService.deleteCategory(id);
+      state = const AsyncData(null);
+      return null;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
 }
 
 final categoryControllerProvider = StateNotifierProvider<CategoryController, AsyncValue<void>>((ref) {
