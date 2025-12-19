@@ -68,6 +68,69 @@ class AdminDashboardScreen extends ConsumerWidget {
 
 
 
+
+class _OrderStatsSummary extends ConsumerWidget {
+  const _OrderStatsSummary();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsFuture = ref.watch(adminOrderStatsProvider);
+
+    return statsFuture.when(
+      data: (stats) {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Overview',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildStatCard('Total Revenue', '₹${stats.totalRevenue}', Colors.green.shade100),
+                    _buildStatCard('Total Orders', '${stats.totalOrders}', Colors.blue.shade100),
+                    _buildStatCard('Pending', '${stats.pendingOrders}', Colors.orange.shade100),
+                    _buildStatCard('Items Sold', '${stats.totalItemsSold}', Colors.purple.shade100),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: LinearProgressIndicator(),
+      ),
+      error: (e, st) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+}
+
 class _OrderList extends ConsumerStatefulWidget {
   const _OrderList();
 
@@ -105,6 +168,7 @@ class _OrderListState extends ConsumerState<_OrderList> {
 
     return Column(
       children: [
+        const _OrderStatsSummary(),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

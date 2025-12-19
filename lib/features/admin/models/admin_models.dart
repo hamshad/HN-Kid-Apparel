@@ -363,4 +363,41 @@ class AdminOrder {
       orderItems: itemsList,
     );
   }
+  }
+
+
+class OrderStatistics {
+  final int totalOrders;
+  final int pendingOrders;
+  final int processingOrders;
+  final int shippedOrders;
+  final int deliveredOrders;
+  final int cancelledOrders;
+  final double totalRevenue;
+  final int totalItemsSold;
+
+  OrderStatistics({
+    required this.totalOrders,
+    required this.pendingOrders,
+    required this.processingOrders,
+    required this.shippedOrders,
+    required this.deliveredOrders,
+    required this.cancelledOrders,
+    required this.totalRevenue,
+    required this.totalItemsSold,
+  });
+
+  factory OrderStatistics.fromJson(Map<String, dynamic> json) {
+    return OrderStatistics(
+      totalOrders: json['TotalOrders'] ?? 0,
+      pendingOrders: json['PendingOrders'] ?? 0,
+      processingOrders: json['ProcessingOrders'] ?? 0,
+      shippedOrders: json['ShippedOrders'] ?? 0,
+      deliveredOrders: json['DeliveredOrders'] ?? 0,
+      cancelledOrders: json['CancelledOrders'] ?? 0,
+      totalRevenue: (json['TotalRevenue'] ?? 0).toDouble(),
+      totalItemsSold: json['TotalItemsSold'] ?? 0,
+    );
+  }
 }
+

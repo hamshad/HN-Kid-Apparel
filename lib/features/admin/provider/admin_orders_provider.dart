@@ -11,6 +11,17 @@ final adminOrdersProvider =
   return AdminOrdersNotifier(adminService);
 });
 
+final adminOrderStatsProvider = FutureProvider.autoDispose<OrderStatistics>((ref) async {
+  final adminService = ref.read(adminServiceProvider);
+  // Watch adminOrdersProvider to refresh stats when orders change (optional but good UI)
+  // Or at least when we toggle status? 
+  // Actually, typically stats are global summary, so they might not change with filters, 
+  // but they should refresh if we add/edit orders (not implemented yet).
+  // For now, let's just fetch it once or on manual refresh.
+  // To allow manual refresh, we can use ref.watch(refreshTriggerProvider) pattern or just invalidate.
+  return adminService.getOrderStatistics();
+});
+
 class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
   final AdminService _adminService;
   int _currentPage = 1;

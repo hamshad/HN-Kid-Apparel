@@ -812,4 +812,23 @@ class AdminService {
       throw Exception('Failed to load admin orders: ${response.statusCode}');
     }
   }
+
+  Future<OrderStatistics> getOrderStatistics() async {
+    final headers = await _getHeaders();
+    final uri = Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/statistics');
+
+    FancyLogger.apiRequest('GET', uri.toString());
+    final response = await http.get(uri, headers: headers);
+    FancyLogger.apiResponse(
+        'GET', uri.toString(), response.statusCode, response.body);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final Map<String, dynamic> data = responseData['Data'] ?? {};
+      return OrderStatistics.fromJson(data);
+    } else {
+      throw Exception('Failed to load order statistics: ${response.statusCode}');
+    }
+  }
 }
