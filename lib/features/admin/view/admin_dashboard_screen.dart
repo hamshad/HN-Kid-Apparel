@@ -69,6 +69,7 @@ class AdminDashboardScreen extends ConsumerWidget {
 
 
 
+
 class _OrderStatsSummary extends ConsumerWidget {
   const _OrderStatsSummary();
 
@@ -78,26 +79,61 @@ class _OrderStatsSummary extends ConsumerWidget {
 
     return statsFuture.when(
       data: (stats) {
-        return Container(
+        return Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Overview',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
               ),
-              const SizedBox(height: 12),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildStatCard('Total Revenue', '₹${stats.totalRevenue}', Colors.green.shade100),
-                    _buildStatCard('Total Orders', '${stats.totalOrders}', Colors.blue.shade100),
-                    _buildStatCard('Pending', '${stats.pendingOrders}', Colors.orange.shade100),
-                    _buildStatCard('Items Sold', '${stats.totalItemsSold}', Colors.purple.shade100),
-                  ],
-                ),
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 600;
+                  return Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      _buildStatCard(
+                        context,
+                        'Total Revenue',
+                        '₹${stats.totalRevenue.toStringAsFixed(2)}',
+                        Icons.currency_rupee,
+                        Colors.green,
+                        isWide,
+                      ),
+                      _buildStatCard(
+                        context,
+                        'Total Orders',
+                        '${stats.totalOrders}',
+                        Icons.shopping_bag,
+                        Colors.blue,
+                        isWide,
+                      ),
+                      _buildStatCard(
+                        context,
+                        'Pending',
+                        '${stats.pendingOrders}',
+                        Icons.pending_actions,
+                        Colors.orange,
+                        isWide,
+                      ),
+                      _buildStatCard(
+                        context,
+                        'Items Sold',
+                        '${stats.totalItemsSold}',
+                        Icons.inventory_2,
+                        Colors.purple,
+                        isWide,
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -105,26 +141,78 @@ class _OrderStatsSummary extends ConsumerWidget {
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(16.0),
-        child: LinearProgressIndicator(),
+        child: Center(child: CircularProgressIndicator()),
       ),
-      error: (e, st) => const SizedBox.shrink(),
+      error: (e, st) => SizedBox(
+        height: 100,
+        child: Center(child: Text('Error loading stats: $e')),
+      ),
     );
   }
 
-  Widget _buildStatCard(String title, String value, Color color) {
+  Widget _buildStatCard(BuildContext context, String title, String value,
+      IconData icon, MaterialColor color, bool isWide) {
+    final width = isWide
+        ? (MediaQuery.of(context).size.width - 32 - 48) / 4
+        : (MediaQuery.of(context).size.width - 32 - 16) / 2;
+
     return Container(
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      width: width,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha(25), // Updated to use withAlpha (0-255)
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: color.shade50, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 20, color: color.shade700),
+              ),
+              const Spacer(),
+              if (title == 'Pending')
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
         ],
       ),
     );
@@ -169,33 +257,56 @@ class _OrderListState extends ConsumerState<_OrderList> {
     return Column(
       children: [
         const _OrderStatsSummary(),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+
+        Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              'pending',
-              'processing',
-              'shipped',
-              'delivered',
-              'cancelled'
-            ].map((status) {
-              final isSelected = notifier.currentStatus == status;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  label: Text(status.toUpperCase()),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      notifier.updateStatus(status);
-                    }
-                  },
-                  backgroundColor: isSelected ? _getStatusColor(status) : null,
-                  selectedColor: _getStatusColor(status),
-                ),
-              );
-            }).toList(),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                'pending',
+                'processing',
+                'shipped',
+                'delivered',
+                'cancelled'
+              ].map((status) {
+                final isSelected = notifier.currentStatus == status;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(
+                      status.toUpperCase(),
+                      style: TextStyle(
+                        color: isSelected ? Colors.black87 : Colors.grey.shade600,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                    selected: isSelected,
+                    showCheckmark: false,
+                    onSelected: (selected) {
+                      if (selected) {
+                        notifier.updateStatus(status);
+                      }
+                    },
+                    selectedColor: _getStatusColor(status),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: isSelected
+                            ? _getStatusColor(status)
+                            : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
         Expanded(
