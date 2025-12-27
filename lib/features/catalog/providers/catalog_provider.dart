@@ -3,15 +3,51 @@ import '../../../shared/models/product.dart';
 import '../models/category_model.dart';
 import '../services/catalog_service.dart';
 
-final designListProvider = FutureProvider<List<Product>>((ref) async {
+class DesignFilter {
+  final int page;
+  final int? categoryId;
+
+  const DesignFilter({required this.page, this.categoryId});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DesignFilter &&
+          runtimeType == other.runtimeType &&
+          page == other.page &&
+          categoryId == other.categoryId;
+
+  @override
+  int get hashCode => page.hashCode ^ categoryId.hashCode;
+}
+
+final designsProvider = FutureProvider.family<List<Product>, DesignFilter>((
+  ref,
+  filter,
+) async {
   final catalogService = ref.watch(catalogServiceProvider);
-  final designs = await catalogService.getDesigns();
-  
-  // Convert Designs to Products for UI consumption
+  final designs = await catalogService.getDesigns(
+    page: filter.page,
+    pageSize: 20,
+    categoryId: filter.categoryId,
+  );
   return designs.map((design) => Product.fromDesign(design)).toList();
 });
 
-final categoryListProvider = FutureProvider<List<Category>>((ref) async {
+final categoriesProvider = FutureProvider.family<List<Category>, int>((
+  ref,
+  page,
+) async {
   final catalogService = ref.watch(catalogServiceProvider);
-  return await catalogService.getCategories();
+  return await catalogService.getCategories(page: page, pageSize: 10);
+});
+
+// Keep legacy provider for backward compatibility if needed, or remove.
+// For now, redirecting to page 1.
+final designListProvider = FutureProvider<List<Product>>((ref) async {
+  return ref.watch(designsProvider(const DesignFilter(page: 1)).future);
+});
+
+final categoryListProvider = FutureProvider<List<Category>>((ref) async {
+  return ref.watch(categoriesProvider(1).future);
 });

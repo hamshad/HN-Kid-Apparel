@@ -38,14 +38,14 @@ class Category {
   @JsonKey(name: 'IsActive')
   final bool isActive;
   @JsonKey(name: 'CreatedDate')
-  final DateTime createdDate;
+  final DateTime? createdDate;
 
   Category({
     required this.categoryId,
     required this.name,
     required this.imageUrl,
     required this.isActive,
-    required this.createdDate,
+    this.createdDate,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);

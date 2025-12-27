@@ -27,18 +27,19 @@ Map<String, dynamic> _$CategoryResponseToJson(CategoryResponse instance) =>
     };
 
 Category _$CategoryFromJson(Map<String, dynamic> json) => Category(
-      categoryId: (json['CategoryId'] as num).toInt(),
-      name: json['Name'] as String,
-      imageUrl: json['ImageUrl'] as String,
-      isActive: json['IsActive'] as bool,
-      createdDate: DateTime.parse(json['CreatedDate'] as String),
-    );
+  categoryId: (json['CategoryId'] as num).toInt(),
+  name: json['Name'] as String,
+  imageUrl: json['ImageUrl'] as String,
+  isActive: json['IsActive'] as bool,
+  createdDate: json['CreatedDate'] == null
+      ? null
+      : DateTime.parse(json['CreatedDate'] as String),
+);
 
 Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
-      'CategoryId': instance.categoryId,
-      'Name': instance.name,
-      'ImageUrl': instance.imageUrl,
-      'IsActive': instance.isActive,
-      'CreatedDate': instance.createdDate.toIso8601String(),
-    };
-
+  'CategoryId': instance.categoryId,
+  'Name': instance.name,
+  'ImageUrl': instance.imageUrl,
+  'IsActive': instance.isActive,
+  'CreatedDate': instance.createdDate?.toIso8601String(),
+};

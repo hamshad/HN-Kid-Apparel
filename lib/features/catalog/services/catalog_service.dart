@@ -22,13 +22,24 @@ class CatalogService {
 
   CatalogService(this._apiClient, this._authService, this._storageService);
 
-  Future<List<Design>> getDesigns({int page = 1, int pageSize = 10}) async {
+  Future<List<Design>> getDesigns({int page = 1, int pageSize = 10, int? categoryId}) async {
     final token = await _storageService.getToken();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}')
-        .replace(queryParameters: {
+    final queryParams = {
       'page': page.toString(),
       'pageSize': pageSize.toString(),
-    });
+    };
+    
+    String path = ApiConstants.designEndpoint;
+    if (categoryId != null) {
+      path = '$path/category/$categoryId';
+    } else {
+      // If no category, we might want to ensure we hit the base endpoint correctly
+      // ApiConstants.designEndpoint is likely '/api/Design'
+    }
+    
+    final uri = Uri.parse('${ApiConstants.baseUrl}$path')
+        .replace(queryParameters: queryParams);
+
 
     final response = await _apiClient.get(
       uri,
