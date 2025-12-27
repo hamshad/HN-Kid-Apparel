@@ -37,12 +37,14 @@ class AdminService {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
+      // Optional: Check if responseData['Success'] == true
       final List<dynamic> data = responseData['Data'] ?? [];
       return data.map((json) => Brand.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load brands: ${response.statusCode}');
     }
   }
+
 
   Future<Map<String, dynamic>> addBrand(String name, File imageFile) async {
     final headers = await _getHeaders();

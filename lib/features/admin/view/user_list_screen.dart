@@ -57,7 +57,97 @@ class UserListScreen extends ConsumerStatefulWidget {
 }
 
 class _UserListScreenState extends ConsumerState<UserListScreen> {
+  final ScrollController _scrollController = ScrollController();
+  final List<User> _users = [];
   int _currentPage = 1;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  Object? _paginationError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPage(_currentPage);
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchPage(int page, {bool refresh = false}) async {
+    if (_isLoadingMore || (!_hasMore && !refresh)) return;
+    bool isError = false;
+    List<User> newUsers = [];
+    if (mounted) {
+      setState(() {
+        _isLoadingMore = true;
+        if (refresh) _paginationError = null;
+      });
+    }
+    try {
+      newUsers = await ref.read(usersProvider(page).future);
+      // Deduplicate by userId
+      final ids = _users.map((u) => u.userId).toSet();
+      final uniqueNew = newUsers.where((u) => !ids.contains(u.userId)).toList();
+      if (mounted) {
+        setState(() {
+          if (refresh) {
+            _users.clear();
+            _currentPage = 1;
+            _hasMore = true;
+          }
+          if (uniqueNew.isEmpty) {
+            _hasMore = false;
+          } else {
+            _users.addAll(uniqueNew);
+            _currentPage = page;
+          }
+          _paginationError = null;
+        });
+      }
+    } catch (e) {
+      isError = true;
+      if (mounted) {
+        setState(() {
+          _paginationError = e;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+         // Check if we should load more after layout
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _hasMore && !_isLoadingMore && _scrollController.hasClients) {
+            if (_scrollController.position.maxScrollExtent <= 0) {
+              _fetchPage(_currentPage + 1);
+            }
+          }
+        });
+      }
+      if (isError && mounted && _users.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('Failed to load more users: ${_paginationError ?? ""}')),
+        );
+      }
+    }
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && !_isLoadingMore && _hasMore) {
+      _fetchPage(_currentPage + 1);
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    await _fetchPage(1, refresh: true);
+  }
 
   Future<void> _editUser(User user) async {
     final result = await Navigator.push(
@@ -69,7 +159,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
 
     // If edit was successful, refresh the list
     if (result == true && mounted) {
-      ref.invalidate(usersProvider(_currentPage));
+      _onRefresh();
     }
   }
 
@@ -110,7 +200,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
           ),
         );
         // Refresh the list
-        ref.invalidate(usersProvider(_currentPage));
+        _onRefresh();
       }
     } catch (e) {
       if (mounted) {
@@ -126,257 +216,217 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final usersAsync = ref.watch(usersProvider(_currentPage));
-
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(usersProvider(_currentPage));
-          await ref.read(usersProvider(_currentPage).future);
-        },
-        child: usersAsync.when(
-        data: (users) {
-          if (users.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.people_outline, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No users found',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: users.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final user = users[index];
-                    return Card(
-                      elevation: 2,
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          child: Text(
-                            user.fullName.isNotEmpty
-                                ? user.fullName[0].toUpperCase()
-                                : 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+        onRefresh: _onRefresh,
+        child: _users.isEmpty && _isLoadingMore
+            ? const Center(child: CircularProgressIndicator())
+            : _paginationError != null && _users.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error: $_paginationError',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
                         ),
-                        title: Row(
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _onRefresh,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : _users.isEmpty && !_hasMore 
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Expanded(
-                              child: Text(
-                                user.fullName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
+                            Icon(Icons.people_outline, size: 64, color: Colors.grey),
+                            SizedBox(height: 16),
+                            Text(
+                              'No users found',
+                              style: TextStyle(fontSize: 18, color: Colors.grey),
                             ),
-                            if (!user.isActive)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade100,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'Inactive',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.red.shade900,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.email, size: 16, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Expanded(
+                      )
+                    : ListView.separated(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _users.length + (_isLoadingMore || _hasMore ? 1 : 0),
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          if (index < _users.length) {
+                             final user = _users[index];
+                             return Card(
+                              elevation: 2,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(16),
+                                leading: CircleAvatar(
+                                  backgroundColor: Theme.of(context).primaryColor,
                                   child: Text(
-                                    user.email,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.phone, size: 16, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text(
-                                  user.mobile,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                            if (user.shopName.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.store, size: 16, color: Colors.grey),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      user.shopName,
-                                      style: const TextStyle(fontSize: 14),
+                                    user.fullName.isNotEmpty
+                                        ? user.fullName[0].toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Joined: ${DateFormat('MMM dd, yyyy').format(user.createdAt)}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        trailing: PopupMenuButton(
-                          icon: const Icon(Icons.more_vert),
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Edit'),
-                                ],
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        user.fullName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                    if (!user.isActive)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red.shade100,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          'Inactive',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.red.shade900,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.email, size: 16, color: Colors.grey),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            user.email,
+                                            style: const TextStyle(fontSize: 14),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.phone, size: 16, color: Colors.grey),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          user.mobile,
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                    if (user.shopName.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.store, size: 16, color: Colors.grey),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              user.shopName,
+                                              style: const TextStyle(fontSize: 14),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Joined: ${DateFormat('MMM dd, yyyy').format(user.createdAt)}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                trailing: PopupMenuButton(
+                                  icon: const Icon(Icons.more_vert),
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.edit, size: 20),
+                                          SizedBox(width: 8),
+                                          Text('Edit'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.delete, size: 20, color: Colors.red),
+                                          SizedBox(width: 8),
+                                          Text('Delete', style: TextStyle(color: Colors.red)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  onSelected: (value) {
+                                    if (value == 'edit') {
+                                      _editUser(user);
+                                    } else if (value == 'delete') {
+                                      _deleteUser(user);
+                                    }
+                                  },
+                                ),
                               ),
-                            ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete, size: 20, color: Colors.red),
-                                  SizedBox(width: 8),
-                                  Text('Delete', style: TextStyle(color: Colors.red)),
-                                ],
-                              ),
-                            ),
-                          ],
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _editUser(user);
-                            } else if (value == 'delete') {
-                              _deleteUser(user);
-                            }
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // Pagination controls
-              if (users.length == 10) // Show pagination only if there might be more pages
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _currentPage > 1
-                            ? () {
-                                setState(() {
-                                  _currentPage--;
-                                });
-                              }
-                            : null,
-                        icon: const Icon(Icons.arrow_back),
-                        label: const Text('Previous'),
-                      ),
-                      Text(
-                        'Page $_currentPage',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _currentPage++;
-                          });
+                            );
+                          } else {
+                             if (_paginationError != null) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text('Failed to load more'),
+                                      TextButton(
+                                        onPressed: () => _fetchPage(_currentPage + 1),
+                                        child: const Text('Retry'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                             }
+                             return const Center(
+                               child: Padding(
+                                 padding: EdgeInsets.all(16.0),
+                                 child: CircularProgressIndicator(),
+                               ),
+                             );
+                          }
                         },
-                        icon: const Icon(Icons.arrow_forward),
-                        label: const Text('Next'),
                       ),
-                    ],
-                  ),
-                ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                'Error: $error',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.invalidate(usersProvider(_currentPage));
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: widget.onAddUser,
@@ -386,3 +436,4 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
     );
   }
 }
+

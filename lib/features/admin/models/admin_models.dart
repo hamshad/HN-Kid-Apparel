@@ -23,12 +23,19 @@ class Brand {
 }
 
 class Category {
-  final int id;
+  final int categoryId;
   final String name;
   final String? imageUrl;
   final bool isActive;
+  final DateTime createdDate;
 
-  Category({required this.id, required this.name, this.imageUrl, this.isActive = true});
+  Category({
+    required this.categoryId,
+    required this.name,
+    this.imageUrl,
+    this.isActive = true,
+    required this.createdDate,
+  });
 
   factory Category.fromJson(Map<String, dynamic> json) {
     String? img = json['ImageUrl'];
@@ -36,13 +43,16 @@ class Category {
       img = '${ApiConstants.baseUrl}$img';
     }
     return Category(
-      id: json['CategoryId'] ?? json['Id'] ?? 0,
+      categoryId: json['CategoryId'] ?? json['Id'] ?? 0,
       name: json['Name'] ?? '',
       imageUrl: img,
       isActive: json['IsActive'] ?? true,
+      createdDate: DateTime.tryParse(json['CreatedDate'] ?? '') ?? DateTime.now(),
     );
   }
 }
+
+
 
 class Series {
   final int id;

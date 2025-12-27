@@ -6,42 +6,149 @@ import '../models/admin_models.dart';
 import 'add_series_screen.dart';
 import 'edit_series_screen.dart';
 
-class SeriesListScreen extends ConsumerWidget {
+class SeriesListScreen extends ConsumerStatefulWidget {
   const SeriesListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Basic pagination mock - just loading page 1 for now
-    final seriesAsync = ref.watch(seriesProvider(1));
+  ConsumerState<SeriesListScreen> createState() => _SeriesListScreenState();
+}
 
+class _SeriesListScreenState extends ConsumerState<SeriesListScreen> {
+  final ScrollController _scrollController = ScrollController();
+  final List<Series> _seriesList = [];
+  int _currentPage = 1;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  Object? _paginationError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPage(_currentPage);
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchPage(int page, {bool refresh = false}) async {
+    if (_isLoadingMore || (!_hasMore && !refresh)) return;
+    bool isError = false;
+    List<Series> newSeries = [];
+    if (mounted) {
+      setState(() {
+        _isLoadingMore = true;
+        if (refresh) _paginationError = null;
+      });
+    }
+    try {
+      newSeries = await ref.read(seriesProvider(page).future);
+      // Deduplicate by id
+      final ids = _seriesList.map((s) => s.id).toSet();
+      final uniqueNew = newSeries.where((s) => !ids.contains(s.id)).toList();
+      if (mounted) {
+        setState(() {
+          if (refresh) {
+            _seriesList.clear();
+            _currentPage = 1;
+            _hasMore = true;
+          }
+          if (uniqueNew.isEmpty) {
+            _hasMore = false;
+          } else {
+            _seriesList.addAll(uniqueNew);
+            _currentPage = page;
+          }
+          _paginationError = null;
+        });
+      }
+    } catch (e) {
+      isError = true;
+      if (mounted) {
+        setState(() {
+          _paginationError = e;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+         // Check if we should load more after layout
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _hasMore && !_isLoadingMore && _scrollController.hasClients) {
+            if (_scrollController.position.maxScrollExtent <= 0) {
+              _fetchPage(_currentPage + 1);
+            }
+          }
+        });
+      }
+      if (isError && mounted && _seriesList.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load more series')),
+        );
+      }
+    }
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && !_isLoadingMore && _hasMore) {
+      _fetchPage(_currentPage + 1);
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    await _fetchPage(1, refresh: true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: seriesAsync.when(
-        data: (seriesList) => RefreshIndicator(
-          onRefresh: () => ref.refresh(seriesProvider(1).future),
-          child: seriesList.isEmpty 
-          ? const Center(child: Text('No Series Found'))
-          : ListView.builder( // using ListView for text-heavy items often looks better than grid unless brief, but user asked for "sorta 3x3 grid" for others. Series might be just text. Let's use Grid for consistency if names are short. User said "Series" e.g. "Summer Collection".
-            // Let's stick to Grid for consistency with Brands/Categories
-            padding: const EdgeInsets.all(16),
-            itemCount: seriesList.length,
-            // gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            //   crossAxisCount: 2, // 2 might be better for text, but let's try 3 or list. 
-            //   // Actually text only cards look bad in small squares. 
-            //   // Let's use a nice extensive List or a 2-column grid.
-            //   // Let's use 2 columns for "Series" as names can be longer "Summer Collection 2024"
-            //   childAspectRatio: 2.0, 
-            //   crossAxisSpacing: 12,
-            //   mainAxisSpacing: 12,
-            // ),
-            // Actually, let's use GridView as user seems to like grids.
-            itemBuilder: (context, index) {
-              final series = seriesList[index];
-              return _SeriesItem(series: series, index: index);
-            },
-          ),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: _seriesList.isEmpty && _isLoadingMore
+            ? const Center(child: CircularProgressIndicator())
+            : _paginationError != null && _seriesList.isEmpty
+                ? Center(child: Text('Error: ${_paginationError}'))
+                : _seriesList.isEmpty && !_hasMore 
+                    ? const Center(child: Text('No Series Found'))
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _seriesList.length + (_isLoadingMore || _hasMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index < _seriesList.length) {
+                            final series = _seriesList[index];
+                            return _SeriesItem(series: series, index: index);
+                          } else {
+                             if (_paginationError != null) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text('Failed to load more'),
+                                      TextButton(
+                                        onPressed: () => _fetchPage(_currentPage + 1),
+                                        child: const Text('Retry'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                             }
+                             return const Center(
+                               child: Padding(
+                                 padding: EdgeInsets.all(16.0),
+                                 child: CircularProgressIndicator(),
+                               ),
+                             );
+                          }
+                        },
+                      ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -55,6 +162,7 @@ class SeriesListScreen extends ConsumerWidget {
     );
   }
 }
+
 
 class _SeriesItem extends StatelessWidget {
   final Series series;

@@ -50,7 +50,7 @@ class _EditCategoryScreenState extends ConsumerState<EditCategoryScreen> {
     }
 
     final res = await ref.read(categoryControllerProvider.notifier).updateCategory(
-      id: widget.category.id,
+      id: widget.category.categoryId,
       name: _nameController.text,
       imageFile: _imageFile,
       isActive: _isActive,
@@ -110,7 +110,8 @@ class _EditCategoryScreenState extends ConsumerState<EditCategoryScreen> {
     );
 
     if (confirmed == true && mounted) {
-      final error = await ref.read(categoryControllerProvider.notifier).deleteCategory(widget.category.id);
+      final error = await ref.read(categoryControllerProvider.notifier).deleteCategory(widget.category.categoryId);
+
       
       if (!mounted) return;
 

@@ -15,7 +15,6 @@ class ProductCard extends ConsumerStatefulWidget {
 }
 
 class _ProductCardState extends ConsumerState<ProductCard> {
-
   void _toggleLike() {
     final designId = int.tryParse(widget.product.id);
     if (designId != null) {
@@ -35,10 +34,7 @@ class _ProductCardState extends ConsumerState<ProductCard> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Share via',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Share via', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -68,13 +64,17 @@ class _ProductCardState extends ConsumerState<ProductCard> {
     );
   }
 
-  Widget _buildShareOption({required IconData icon, required Color color, required String label}) {
+  Widget _buildShareOption({
+    required IconData icon,
+    required Color color,
+    required String label,
+  }) {
     return InkWell(
       onTap: () {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Shared to $label')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Shared to $label')));
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -97,9 +97,13 @@ class _ProductCardState extends ConsumerState<ProductCard> {
   @override
   Widget build(BuildContext context) {
     final designId = int.tryParse(widget.product.id) ?? 0;
-    final isLiked = ref.watch(wishlistProvider.select(
-      (value) => value.valueOrNull?.any((item) => item.designId == designId) ?? false
-    ));
+    final isLiked = ref.watch(
+      wishlistProvider.select(
+        (value) =>
+            value.valueOrNull?.any((item) => item.designId == designId) ??
+            false,
+      ),
+    );
 
     return GestureDetector(
       onTap: () => context.go('/product/${widget.product.id}'),
@@ -113,26 +117,42 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                 children: [
                   Hero(
                     tag: 'product_${widget.product.id}',
-                    child: widget.product.images.length > 1 
-                      ? PageView.builder(
-                          itemCount: widget.product.images.length,
-                          itemBuilder: (context, index) {
-                            return CachedNetworkImage(
-                              imageUrl: widget.product.images[index],
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              placeholder: (context, url) => Container(color: Colors.grey[200]),
-                              errorWidget: (context, url, error) => const Icon(Icons.error),
-                            );
-                          },
-                        )
-                      : CachedNetworkImage(
-                          imageUrl: widget.product.images.first,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          placeholder: (context, url) => Container(color: Colors.grey[200]),
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
-                        ),
+                    child: widget.product.images.isEmpty
+                        ? Container(
+                            color: Colors.grey[200],
+                            width: double.infinity,
+                            child: const Center(
+                              child: Icon(
+                                Icons.image_not_supported,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : widget.product.images.length > 1
+                        ? PageView.builder(
+                            itemCount: widget.product.images.length,
+                            itemBuilder: (context, index) {
+                              return CachedNetworkImage(
+                                imageUrl: widget.product.images[index],
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                placeholder: (context, url) =>
+                                    Container(color: Colors.grey[200]),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                              );
+                            },
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: widget.product.images.first,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            placeholder: (context, url) =>
+                                Container(color: Colors.grey[200]),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
+                          ),
                   ),
                   // Action Buttons
                   if (widget.product.isNew)
@@ -140,13 +160,16 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                       top: 10,
                       left: 10,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Theme.of(context).primaryColor,
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: Colors.black.withOpacity(0.2),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -168,7 +191,9 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                     child: Column(
                       children: [
                         _buildActionButton(
-                          icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                          icon: isLiked
+                              ? Icons.favorite
+                              : Icons.favorite_border,
                           color: isLiked ? Colors.red : Colors.grey,
                           onTap: _toggleLike,
                         ),
@@ -194,8 +219,8 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   _buildPrice(context),
@@ -203,23 +228,36 @@ class _ProductCardState extends ConsumerState<ProductCard> {
                   Wrap(
                     spacing: 4,
                     runSpacing: 4,
-                    children: widget.product.variants.take(4).map((v) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Text(
-                        v.size,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
-                      ),
-                    )).toList(),
+                    children: widget.product.variants
+                        .take(4)
+                        .map(
+                          (v) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Text(
+                              v.size,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(fontSize: 10),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                   if (widget.product.variants.length > 4) ...[
-                      const SizedBox(height: 2),
-                      Text("+${widget.product.variants.length - 4} more", style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                  ]
+                    const SizedBox(height: 2),
+                    Text(
+                      "+${widget.product.variants.length - 4} more",
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -229,7 +267,11 @@ class _ProductCardState extends ConsumerState<ProductCard> {
     );
   }
 
-  Widget _buildActionButton({required IconData icon, required Color color, required VoidCallback onTap}) {
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -245,27 +287,22 @@ class _ProductCardState extends ConsumerState<ProductCard> {
             ),
           ],
         ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: color,
-        ),
+        child: Icon(icon, size: 18, color: color),
       ),
     );
   }
 
-
   Widget _buildPrice(BuildContext context) {
     if (widget.product.variants.isEmpty) return const SizedBox.shrink();
-    
+
     final prices = widget.product.variants.map((v) => v.mrp).toList();
     if (prices.isEmpty) return const SizedBox.shrink();
 
     prices.sort();
     final minPrice = prices.first;
-    
+
     return Text(
-      '\$${minPrice.toStringAsFixed(0)}', 
+      '\$${minPrice.toStringAsFixed(0)}',
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
         color: Theme.of(context).primaryColor,
         fontWeight: FontWeight.bold,

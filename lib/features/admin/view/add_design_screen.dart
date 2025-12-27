@@ -144,7 +144,7 @@ class _AddDesignScreenState extends ConsumerState<AddDesignScreen> {
               isLoading: categoriesAsync.isLoading,
               onChanged: (val) => setState(() => _selectedCategoryId = val),
               itemLabelBuilder: (item) => item.name,
-              itemValueBuilder: (item) => item.id,
+              itemValueBuilder: (item) => item.categoryId,
               itemImageBuilder: (item) => item.imageUrl,
             ),
             const SizedBox(height: 16),

@@ -25,8 +25,9 @@ final adminOrderStatsProvider = FutureProvider.autoDispose<OrderStatistics>((ref
 class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
   final AdminService _adminService;
   int _currentPage = 1;
-  final int _pageSize = 10;
+  final int _pageSize = 30;
   bool _hasMore = true;
+  bool _isFetching = false;
   String _currentStatus = 'pending';
 
   AdminOrdersNotifier(this._adminService) : super(const AsyncValue.loading()) {
@@ -34,6 +35,7 @@ class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
   }
 
   Future<void> loadOrders({bool refresh = false}) async {
+    if (_isFetching) return;
     if (refresh) {
       _currentPage = 1;
       _hasMore = true;
@@ -42,13 +44,12 @@ class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
 
     if (!_hasMore && !refresh) return;
 
-    // If loading for the first time or refreshing, show loading
-    // If loading more, we might want to keep the current data, but for simplicity we rely on AsyncValue
-    // However, riverpod's AsyncValue handles 'loading more' gracefully if we use correct state transitions.
-    // For this simple implementation:
+    _isFetching = true;
 
     try {
-      if (_currentPage == 1) {
+      if (_currentPage == 1 && !refresh) {
+        // If it was already loading from constructor or state init, fine.
+        // If explicit first load.
         state = const AsyncValue.loading();
       }
 
@@ -71,19 +72,23 @@ class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
             state = AsyncValue.data([...currentOrders, ...newOrders]);
           });
         }
-        // If we got less than requested, no more data
+        
         if (newOrders.length < _pageSize) {
           _hasMore = false;
         } else {
-            // Prepare for next page only if we got a full page? 
-            // Or always increment? Usually if we get full page, we assume there might be more.
-            // Let's just increment.
              _currentPage++;
         }
       }
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      if (_currentPage == 1) {
+         state = AsyncValue.error(e, st);
+      }
+      // If load more fails, we might want to show snackbar or notification in UI, 
+      // but StateNotifier return type is void. 
+      // For now, simple error logging.
       FancyLogger.error('Error loading admin orders', e, st);
+    } finally {
+      _isFetching = false;
     }
   }
 
@@ -92,7 +97,6 @@ class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
   }
 
   Future<void> loadMore() async {
-    if (state.isLoading || !_hasMore) return;
     await loadOrders();
   }
 
@@ -104,3 +108,4 @@ class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
     await refresh();
   }
 }
+

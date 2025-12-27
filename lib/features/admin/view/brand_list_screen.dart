@@ -6,38 +6,151 @@ import '../models/admin_models.dart';
 import 'add_brand_screen.dart';
 import 'edit_brand_screen.dart';
 
-class BrandListScreen extends ConsumerWidget {
+class BrandListScreen extends ConsumerStatefulWidget {
   const BrandListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Basic pagination mock - just loading page 1 for now
-    final brandsAsync = ref.watch(brandsProvider(1));
+  ConsumerState<BrandListScreen> createState() => _BrandListScreenState();
+}
 
+class _BrandListScreenState extends ConsumerState<BrandListScreen> {
+  final ScrollController _scrollController = ScrollController();
+  final List<Brand> _brands = [];
+  int _currentPage = 1;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  Object? _paginationError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPage(_currentPage);
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchPage(int page, {bool refresh = false}) async {
+    if (_isLoadingMore || (!_hasMore && !refresh)) return;
+    bool isError = false;
+    List<Brand> newBrands = [];
+    if (mounted) {
+      setState(() {
+        _isLoadingMore = true;
+        if (refresh) _paginationError = null;
+      });
+    }
+    try {
+      newBrands = await ref.read(brandsProvider(page).future);
+      // Deduplicate by id
+      final ids = _brands.map((b) => b.id).toSet();
+      final uniqueNew = newBrands.where((b) => !ids.contains(b.id)).toList();
+      if (mounted) {
+        setState(() {
+          if (refresh) {
+            _brands.clear();
+            _currentPage = 1;
+            _hasMore = true;
+          }
+          if (uniqueNew.isEmpty) {
+            _hasMore = false;
+          } else {
+            _brands.addAll(uniqueNew);
+            _currentPage = page;
+          }
+          _paginationError = null;
+        });
+      }
+    } catch (e) {
+      isError = true;
+      if (mounted) {
+        setState(() {
+          _paginationError = e;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+        // Check if we should load more after layout
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _hasMore && !_isLoadingMore && _scrollController.hasClients) {
+            if (_scrollController.position.maxScrollExtent <= 0) {
+              _fetchPage(_currentPage + 1);
+            }
+          }
+        });
+      }
+      if (isError && mounted && _brands.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load more brands')),
+        );
+      }
+    }
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && !_isLoadingMore && _hasMore) {
+      _fetchPage(_currentPage + 1);
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    await _fetchPage(1, refresh: true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: brandsAsync.when(
-        data: (brands) => RefreshIndicator(
-          onRefresh: () async {
-            // Invalidate to reload
-             return ref.refresh(brandsProvider(1).future);
-          },
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, // 3 columns as requested
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.85, // Adjusted for compact look
-            ),
-            itemCount: brands.length,
-            itemBuilder: (context, index) {
-              final brand = brands[index];
-              return _BrandItem(brand: brand, index: index);
-            },
-          ),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: _brands.isEmpty && _isLoadingMore
+            ? const Center(child: CircularProgressIndicator())
+            : _paginationError != null && _brands.isEmpty
+                ? Center(child: Text('Error: ${_paginationError}'))
+                : GridView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: _brands.length + (_isLoadingMore || _hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index < _brands.length) {
+                        final brand = _brands[index];
+                        return _BrandItem(brand: brand, index: index);
+                      } else {
+                        if (_paginationError != null) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('Failed to load more'),
+                                TextButton(
+                                  onPressed: () => _fetchPage(_currentPage + 1),
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return const Center(child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ));
+                      }
+                    },
+                  ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -51,6 +164,7 @@ class BrandListScreen extends ConsumerWidget {
     );
   }
 }
+
 
 class _BrandItem extends StatelessWidget {
   final Brand brand;

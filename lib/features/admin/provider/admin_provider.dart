@@ -13,7 +13,7 @@ final adminServiceProvider = Provider<AdminService>((ref) {
 
 final brandsProvider = FutureProvider.autoDispose.family<List<Brand>, int>((ref, page) async {
   final adminService = ref.watch(adminServiceProvider);
-  return adminService.getBrands(page, 10); // Default pageSize 10
+  return adminService.getBrands(page, 30); // Default pageSize 10
 });
 
 class BrandController extends StateNotifier<AsyncValue<void>> {
@@ -77,8 +77,9 @@ final brandControllerProvider = StateNotifierProvider<BrandController, AsyncValu
 
 final categoriesProvider = FutureProvider.autoDispose.family<List<Category>, int>((ref, page) async {
   final adminService = ref.watch(adminServiceProvider);
-  return adminService.getCategories(page, 10);
+  return adminService.getCategories(page, 30);
 });
+
 
 class CategoryController extends StateNotifier<AsyncValue<void>> {
   final AdminService _adminService;
@@ -140,8 +141,9 @@ final categoryControllerProvider = StateNotifierProvider<CategoryController, Asy
 
 final seriesProvider = FutureProvider.autoDispose.family<List<Series>, int>((ref, page) async {
   final adminService = ref.watch(adminServiceProvider);
-  return adminService.getSeries(page, 10);
+  return adminService.getSeries(page, 30);
 });
+
 
 class SeriesController extends StateNotifier<AsyncValue<void>> {
   final AdminService _adminService;
@@ -202,8 +204,9 @@ final seriesControllerProvider = StateNotifierProvider<SeriesController, AsyncVa
 
 final designsProvider = FutureProvider.autoDispose.family<List<Design>, int>((ref, page) async {
   final adminService = ref.watch(adminServiceProvider);
-  return adminService.getDesigns(page, 10);
+  return adminService.getDesigns(page, 30);
 });
+
 
 class DesignController extends StateNotifier<AsyncValue<void>> {
   final AdminService _adminService;
@@ -361,7 +364,7 @@ final sizeControllerProvider = StateNotifierProvider<SizeController, AsyncValue<
 
 final sizesProvider = FutureProvider.autoDispose.family<List<Size>, int>((ref, page) async {
   final adminService = ref.watch(adminServiceProvider);
-  return adminService.getSizes(page, 20);
+  return adminService.getSizes(page, 30);
 });
 
 final allSizesProvider = FutureProvider.autoDispose<List<Size>>((ref) async {
@@ -427,7 +430,7 @@ final productSizePriceControllerProvider = StateNotifierProvider<ProductSizePric
 
 final productSizePricesProvider = FutureProvider.autoDispose.family<List<ProductSizePrice>, int>((ref, page) async {
   final adminService = ref.watch(adminServiceProvider);
-  return adminService.getProductSizePrices(page, 20);
+  return adminService.getProductSizePrices(page, 30);
 });
 
 // Providers for Dropdowns (fetch larger list)
@@ -452,5 +455,6 @@ final allSeriesProvider = FutureProvider.autoDispose<List<Series>>((ref) async {
 
 final usersProvider = FutureProvider.autoDispose.family<List<User>, int>((ref, page) async {
   final adminService = ref.watch(adminServiceProvider);
-  return adminService.getUsers(page, 10);
+  return adminService.getUsers(page, 30);
 });
+

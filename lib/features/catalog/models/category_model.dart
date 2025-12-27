@@ -12,12 +12,15 @@ class CategoryResponse {
   final String message;
   @JsonKey(name: 'StatusCode')
   final int statusCode;
+  @JsonKey(name: 'Timestamp')
+  final String? timestamp;
 
   CategoryResponse({
     required this.data,
     required this.success,
     required this.message,
     required this.statusCode,
+    this.timestamp,
   });
 
   factory CategoryResponse.fromJson(Map<String, dynamic> json) => _$CategoryResponseFromJson(json);
@@ -32,16 +35,20 @@ class Category {
   final String name;
   @JsonKey(name: 'ImageUrl')
   final String imageUrl;
-  @JsonKey(name: 'CreatedAt')
-  final DateTime createdAt;
+  @JsonKey(name: 'IsActive')
+  final bool isActive;
+  @JsonKey(name: 'CreatedDate')
+  final DateTime createdDate;
 
   Category({
     required this.categoryId,
     required this.name,
     required this.imageUrl,
-    required this.createdAt,
+    required this.isActive,
+    required this.createdDate,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);
   Map<String, dynamic> toJson() => _$CategoryToJson(this);
 }
+

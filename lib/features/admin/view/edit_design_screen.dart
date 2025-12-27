@@ -227,9 +227,9 @@ class _EditDesignScreenState extends ConsumerState<EditDesignScreen> {
               categoriesAsync.when(
                 data: (cats) => DropdownButtonFormField<int>(
                   isExpanded: true,
-                  value: cats.any((c) => c.id == _selectedCategoryId) ? _selectedCategoryId : null,
+                  value: cats.any((c) => c.categoryId == _selectedCategoryId) ? _selectedCategoryId : null,
                   decoration: _inputDecoration('Category', Icons.category),
-                  items: cats.map((c) => DropdownMenuItem(value: c.id, child: Row(
+                  items: cats.map((c) => DropdownMenuItem<int>(value: c.categoryId, child: Row(
                     children: [
                       if (c.imageUrl != null)
                         ClipRRect(
