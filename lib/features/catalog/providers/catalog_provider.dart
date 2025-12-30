@@ -51,3 +51,16 @@ final designListProvider = FutureProvider<List<Product>>((ref) async {
 final categoryListProvider = FutureProvider<List<Category>>((ref) async {
   return ref.watch(categoriesProvider(1).future);
 });
+
+// Provider to fetch a single product by ID directly from API
+final productByIdProvider = FutureProvider.family<Product?, String>((ref, id) async {
+  final catalogService = ref.watch(catalogServiceProvider);
+  final designId = int.tryParse(id);
+  
+  if (designId == null) return null;
+  
+  final design = await catalogService.getDesignById(designId);
+  if (design == null) return null;
+  
+  return Product.fromDesign(design);
+});

@@ -153,11 +153,15 @@ class _BrandListScreenState extends ConsumerState<BrandListScreen> {
                   ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddBrandScreen()),
           );
+          // Refresh list if brand was added
+          if (result == true && mounted) {
+            _onRefresh();
+          }
         },
         child: const Icon(Icons.add),
       ),
@@ -221,13 +225,18 @@ class _BrandItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => EditBrandScreen(brand: brand),
               ),
             );
+            // Refresh list if brand was updated or deleted
+            if (result == true && context.mounted) {
+              // Find the parent BrandListScreen state and refresh
+              context.findAncestorStateOfType<_BrandListScreenState>()?._onRefresh();
+            }
           },
           onLongPress: () => _showFullscreen(context),
           child: Column(

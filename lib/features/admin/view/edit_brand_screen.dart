@@ -69,7 +69,7 @@ class _EditBrandScreenState extends ConsumerState<EditBrandScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(ctx); 
-                  Navigator.pop(context); 
+                  Navigator.pop(context, true); // Return true to signal success
                 },
                 child: const Text('OK'),
               )
@@ -330,7 +330,7 @@ class _EditBrandScreenState extends ConsumerState<EditBrandScreen> {
            const SnackBar(content: Text('Brand deleted successfully')),
         );
         ref.invalidate(brandsProvider(1));
-        Navigator.pop(context); // Close edit screen
+        Navigator.pop(context, true); // Return true to signal success
       } else {
         // Failure
         showDialog(

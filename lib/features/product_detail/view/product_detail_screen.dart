@@ -25,7 +25,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productAsync = ref.watch(productDetailsProvider(widget.id));
+    final productAsync = ref.watch(productByIdProvider(widget.id));
 
     return Scaffold(
       appBar: AppBar(
@@ -63,8 +63,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(productDetailsProvider(widget.id));
-              await ref.read(productDetailsProvider(widget.id).future);
+              ref.invalidate(productByIdProvider(widget.id));
+              await ref.read(productByIdProvider(widget.id).future);
             },
             child: Column(
             children: [
@@ -294,13 +294,3 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 }
-
-// Provider for fetching specific product details
-final productDetailsProvider = FutureProvider.family<Product?, String>((ref, id) async {
-  final products = await ref.watch(designListProvider.future);
-  try {
-    return products.firstWhere((p) => p.id == id);
-  } catch (e) {
-    return null;
-  }
-});

@@ -82,4 +82,31 @@ class CatalogService {
       throw Exception('Failed to load categories: ${response.statusCode}');
     }
   }
+
+  Future<Design?> getDesignById(int designId) async {
+    final token = await _storageService.getToken();
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId');
+
+    final response = await _apiClient.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      // Assuming the API returns a single design wrapped in the standard response format
+      // If the API returns just the design object, adjust accordingly
+      if (json['Success'] == true && json['Data'] != null) {
+        return Design.fromJson(json['Data']);
+      }
+      return null;
+    } else if (response.statusCode == 404) {
+      return null;
+    } else {
+      throw Exception('Failed to load design: ${response.statusCode}');
+    }
+  }
 }

@@ -15,25 +15,31 @@ class AdminService {
 
   Future<Map<String, String>> _getHeaders() async {
     final token = await _storageService.getToken();
-    return {
-      'Authorization': 'Bearer $token',
-    };
+    return {'Authorization': 'Bearer $token'};
   }
 
   // --- Brands ---
 
   Future<List<Brand>> getBrands(int page, int pageSize) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    });
+    final uri =
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}',
+        ).replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -45,12 +51,16 @@ class AdminService {
     }
   }
 
-
   Future<Map<String, dynamic>> addBrand(String name, File imageFile) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}');
-    
-    FancyLogger.apiRequest('POST', uri.toString(), {'Name': name, 'Logo': imageFile.path});
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}',
+    );
+
+    FancyLogger.apiRequest('POST', uri.toString(), {
+      'Name': name,
+      'Logo': imageFile.path,
+    });
 
     var request = http.MultipartRequest('POST', uri);
 
@@ -58,16 +68,20 @@ class AdminService {
     request.fields['Name'] = name;
 
     if (await imageFile.exists()) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'Logo',
-        imageFile.path,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath('Logo', imageFile.path),
+      );
     }
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
-    
-    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -83,9 +97,15 @@ class AdminService {
     required bool isActive,
   }) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}/$id');
-    
-    FancyLogger.apiRequest('PUT', uri.toString(), {'Name': name, 'Logo': imageFile?.path, 'IsActive': isActive});
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}/$id',
+    );
+
+    FancyLogger.apiRequest('PUT', uri.toString(), {
+      'Name': name,
+      'Logo': imageFile?.path,
+      'IsActive': isActive,
+    });
 
     var request = http.MultipartRequest('PUT', uri);
 
@@ -94,16 +114,20 @@ class AdminService {
     request.fields['IsActive'] = isActive.toString();
 
     if (imageFile != null && await imageFile.exists()) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'Logo',
-        imageFile.path,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath('Logo', imageFile.path),
+      );
     }
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
-    
-    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -114,11 +138,18 @@ class AdminService {
 
   Future<void> deleteBrand(int id) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}/$id');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.brandEndpoint}/$id',
+    );
 
     FancyLogger.apiRequest('DELETE', uri.toString());
     final response = await http.delete(uri, headers: headers);
-    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'DELETE',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       String errorMessage = 'Failed to delete brand';
@@ -138,16 +169,24 @@ class AdminService {
 
   Future<List<Category>> getCategories(int page, int pageSize) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    });
+    final uri =
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}',
+        ).replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -160,9 +199,14 @@ class AdminService {
 
   Future<Map<String, dynamic>> addCategory(String name, File imageFile) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}');
-    
-    FancyLogger.apiRequest('POST', uri.toString(), {'Name': name, 'Image': imageFile.path});
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}',
+    );
+
+    FancyLogger.apiRequest('POST', uri.toString(), {
+      'Name': name,
+      'Image': imageFile.path,
+    });
 
     var request = http.MultipartRequest('POST', uri);
 
@@ -170,16 +214,20 @@ class AdminService {
     request.fields['Name'] = name;
 
     if (await imageFile.exists()) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'Image', 
-        imageFile.path,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath('Image', imageFile.path),
+      );
     }
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
 
-    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -195,9 +243,15 @@ class AdminService {
     required bool isActive,
   }) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}/$id');
-    
-    FancyLogger.apiRequest('PUT', uri.toString(), {'Name': name, 'Image': imageFile?.path, 'IsActive': isActive});
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}/$id',
+    );
+
+    FancyLogger.apiRequest('PUT', uri.toString(), {
+      'Name': name,
+      'Image': imageFile?.path,
+      'IsActive': isActive,
+    });
 
     var request = http.MultipartRequest('PUT', uri);
 
@@ -206,16 +260,20 @@ class AdminService {
     request.fields['IsActive'] = isActive.toString();
 
     if (imageFile != null && await imageFile.exists()) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'Image',
-        imageFile.path,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath('Image', imageFile.path),
+      );
     }
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
-    
-    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -226,11 +284,18 @@ class AdminService {
 
   Future<void> deleteCategory(int id) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}/$id');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.categoryEndpoint}/$id',
+    );
 
     FancyLogger.apiRequest('DELETE', uri.toString());
     final response = await http.delete(uri, headers: headers);
-    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'DELETE',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       String errorMessage = 'Failed to delete category';
@@ -248,16 +313,24 @@ class AdminService {
 
   Future<List<Series>> getSeries(int page, int pageSize) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    });
+    final uri =
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}',
+        ).replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -272,7 +345,9 @@ class AdminService {
     try {
       final headers = await _getHeaders();
       headers['Content-Type'] = 'application/json';
-      final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}');
+      final uri = Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}',
+      );
 
       final body = {'Name': name};
       FancyLogger.apiRequest('POST', uri.toString(), body);
@@ -283,7 +358,12 @@ class AdminService {
         body: jsonEncode(body),
       );
 
-      FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+      FancyLogger.apiResponse(
+        'POST',
+        uri.toString(),
+        response.statusCode,
+        response.body,
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body);
@@ -302,12 +382,11 @@ class AdminService {
   }) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}/$id');
-    
-    final body = {
-      'Name': name,
-      'IsActive': isActive,
-    };
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}/$id',
+    );
+
+    final body = {'Name': name, 'IsActive': isActive};
     FancyLogger.apiRequest('PUT', uri.toString(), body);
 
     final response = await http.put(
@@ -316,7 +395,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -327,11 +411,18 @@ class AdminService {
 
   Future<void> deleteSeries(int id) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}/$id');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.seriesEndpoint}/$id',
+    );
 
     FancyLogger.apiRequest('DELETE', uri.toString());
     final response = await http.delete(uri, headers: headers);
-    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'DELETE',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       String errorMessage = 'Failed to delete series';
@@ -349,16 +440,24 @@ class AdminService {
 
   Future<List<Design>> getDesigns(int page, int pageSize) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.designEndpoint}')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    });
+    final uri =
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.designEndpoint}',
+        ).replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -379,8 +478,10 @@ class AdminService {
   }) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}');
-    
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.designEndpoint}',
+    );
+
     final body = {
       'Title': title,
       'DesignNumber': designNumber,
@@ -397,7 +498,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -418,8 +524,10 @@ class AdminService {
   }) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$id');
-    
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$id',
+    );
+
     final body = {
       'Title': title,
       'DesignNumber': designNumber,
@@ -437,7 +545,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -448,11 +561,18 @@ class AdminService {
 
   Future<void> deleteDesign(int id) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$id');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$id',
+    );
 
     FancyLogger.apiRequest('DELETE', uri.toString());
     final response = await http.delete(uri, headers: headers);
-    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'DELETE',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       String errorMessage = 'Failed to delete design';
@@ -466,9 +586,14 @@ class AdminService {
     }
   }
 
-  Future<Map<String, dynamic>> addDesignImage(int designId, File imageFile) async {
+  Future<Map<String, dynamic>> addDesignImage(
+    int designId,
+    File imageFile,
+  ) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId/images');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId/images',
+    );
 
     FancyLogger.apiRequest('POST', uri.toString(), {'Image': imageFile.path});
 
@@ -477,16 +602,23 @@ class AdminService {
     request.headers.addAll(headers);
 
     if (await imageFile.exists()) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'Image', // API expects 'Image'
-        imageFile.path,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'Image', // API expects 'Image'
+          imageFile.path,
+        ),
+      );
     }
 
     final streamResponse = await request.send();
     final response = await http.Response.fromStream(streamResponse);
 
-    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -497,11 +629,18 @@ class AdminService {
 
   Future<List<DesignImage>> getDesignImages(int designId) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId/images');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.designEndpoint}/$designId/images',
+    );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -516,16 +655,22 @@ class AdminService {
 
   Future<List<Size>> getSizes(int page, int pageSize) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    });
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}')
+        .replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -539,8 +684,10 @@ class AdminService {
   Future<Map<String, dynamic>> addSize(String sizeLabel) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}');
-    
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}',
+    );
+
     final body = {'SizeLabel': sizeLabel};
     FancyLogger.apiRequest('POST', uri.toString(), body);
 
@@ -550,7 +697,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -562,8 +714,10 @@ class AdminService {
   Future<Map<String, dynamic>> updateSize(int id, String sizeLabel) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}/$id');
-    
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}/$id',
+    );
+
     final body = {'SizeLabel': sizeLabel};
     FancyLogger.apiRequest('PUT', uri.toString(), body);
 
@@ -573,7 +727,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -584,11 +743,18 @@ class AdminService {
 
   Future<void> deleteSize(int id) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}/$id');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.sizeEndpoint}/$id',
+    );
 
     FancyLogger.apiRequest('DELETE', uri.toString());
     final response = await http.delete(uri, headers: headers);
-    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'DELETE',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       String errorMessage = 'Failed to delete size';
@@ -604,38 +770,53 @@ class AdminService {
 
   // --- Product Size Price ---
 
-  Future<List<ProductSizePrice>> getProductSizePrices(int page, int pageSize) async {
+  Future<List<ProductSizePrice>> getProductSizePrices(
+    int page,
+    int pageSize,
+  ) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    });
+    final uri =
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}',
+        ).replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
       final List<dynamic> data = responseData['Data'] ?? [];
       return data.map((json) => ProductSizePrice.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load product size prices: ${response.statusCode}');
+      throw Exception(
+        'Failed to load product size prices: ${response.statusCode}',
+      );
     }
   }
 
-  Future<Map<String, dynamic>> addProductSizePrice(int designId, int sizeId, double price) async {
+  Future<Map<String, dynamic>> addProductSizePrice(
+    int designId,
+    int sizeId,
+    double price,
+  ) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}');
-    
-    final body = {
-      'DesignId': designId,
-      'SizeId': sizeId,
-      'Price': price,
-    };
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}',
+    );
+
+    final body = {'DesignId': designId, 'SizeId': sizeId, 'Price': price};
     FancyLogger.apiRequest('POST', uri.toString(), body);
 
     final response = await http.post(
@@ -644,7 +825,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('POST', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -653,11 +839,19 @@ class AdminService {
     }
   }
 
-  Future<Map<String, dynamic>> updateProductSizePrice(int id, int designId, int sizeId, double price, bool isActive) async {
+  Future<Map<String, dynamic>> updateProductSizePrice(
+    int id,
+    int designId,
+    int sizeId,
+    double price,
+    bool isActive,
+  ) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}/$id');
-    
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}/$id',
+    );
+
     final body = {
       'DesignId': designId,
       'SizeId': sizeId,
@@ -672,7 +866,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -683,11 +882,18 @@ class AdminService {
 
   Future<void> deleteProductSizePrice(int id) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}/$id');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.productSizePriceEndpoint}/$id',
+    );
 
     FancyLogger.apiRequest('DELETE', uri.toString());
     final response = await http.delete(uri, headers: headers);
-    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'DELETE',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       String errorMessage = 'Failed to delete product size price';
@@ -705,16 +911,22 @@ class AdminService {
 
   Future<List<User>> getUsers(int page, int pageSize) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.userEndpoint}')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-    });
+    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.userEndpoint}')
+        .replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
-    FancyLogger.apiResponse('GET', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -737,8 +949,10 @@ class AdminService {
   }) async {
     final headers = await _getHeaders();
     headers['Content-Type'] = 'application/json';
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.userEndpoint}/$userId');
-    
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.userEndpoint}/$userId',
+    );
+
     final body = {
       'Mobile': mobile,
       'Email': email,
@@ -756,7 +970,12 @@ class AdminService {
       body: jsonEncode(body),
     );
 
-    FancyLogger.apiResponse('PUT', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -767,11 +986,18 @@ class AdminService {
 
   Future<void> deleteUser(int userId) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.userEndpoint}/$userId');
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.userEndpoint}/$userId',
+    );
 
     FancyLogger.apiRequest('DELETE', uri.toString());
     final response = await http.delete(uri, headers: headers);
-    FancyLogger.apiResponse('DELETE', uri.toString(), response.statusCode, response.body);
+    FancyLogger.apiResponse(
+      'DELETE',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       String errorMessage = 'Failed to delete user';
@@ -793,18 +1019,25 @@ class AdminService {
     String status = 'pending',
   }) async {
     final headers = await _getHeaders();
-    final uri = Uri.parse(
-            '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/all')
-        .replace(queryParameters: {
-      'page': page.toString(),
-      'pageSize': pageSize.toString(),
-      'status': status,
-    });
+    final uri =
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/all',
+        ).replace(
+          queryParameters: {
+            'page': page.toString(),
+            'pageSize': pageSize.toString(),
+            'status': status,
+          },
+        );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
     FancyLogger.apiResponse(
-        'GET', uri.toString(), response.statusCode, response.body);
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
@@ -818,19 +1051,114 @@ class AdminService {
   Future<OrderStatistics> getOrderStatistics() async {
     final headers = await _getHeaders();
     final uri = Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/statistics');
+      '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/statistics',
+    );
 
     FancyLogger.apiRequest('GET', uri.toString());
     final response = await http.get(uri, headers: headers);
     FancyLogger.apiResponse(
-        'GET', uri.toString(), response.statusCode, response.body);
+      'GET',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
       final Map<String, dynamic> data = responseData['Data'] ?? {};
       return OrderStatistics.fromJson(data);
     } else {
-      throw Exception('Failed to load order statistics: ${response.statusCode}');
+      throw Exception(
+        'Failed to load order statistics: ${response.statusCode}',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> approveOrder(int orderId) async {
+    final headers = await _getHeaders();
+    headers['Content-Type'] = 'application/json';
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/$orderId/approve',
+    );
+
+    FancyLogger.apiRequest('POST', uri.toString());
+
+    final response = await http.post(uri, headers: headers);
+
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to approve order: ${response.body}');
+    }
+  }
+
+  Future<Map<String, dynamic>> cancelOrder(int orderId, String reason) async {
+    final headers = await _getHeaders();
+    headers['Content-Type'] = 'application/json';
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/$orderId/reject',
+    );
+
+    final body = {'Reason': reason};
+    FancyLogger.apiRequest('POST', uri.toString(), body);
+
+    final response = await http.post(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    FancyLogger.apiResponse(
+      'POST',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to cancel order: ${response.body}');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateOrderStatus(
+    int orderId,
+    String status,
+  ) async {
+    final headers = await _getHeaders();
+    headers['Content-Type'] = 'application/json';
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.orderEndpoint}/admin/$orderId/status',
+    );
+
+    final body = {'Status': status};
+    FancyLogger.apiRequest('PUT', uri.toString(), body);
+
+    final response = await http.put(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    FancyLogger.apiResponse(
+      'PUT',
+      uri.toString(),
+      response.statusCode,
+      response.body,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update order status: ${response.body}');
     }
   }
 }

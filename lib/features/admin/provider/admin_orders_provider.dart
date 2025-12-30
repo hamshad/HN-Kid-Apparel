@@ -5,17 +5,20 @@ import '../services/admin_service.dart';
 import 'admin_provider.dart';
 
 final adminOrdersProvider =
-    StateNotifierProvider<AdminOrdersNotifier, AsyncValue<List<AdminOrder>>>(
-        (ref) {
-  final adminService = ref.read(adminServiceProvider);
-  return AdminOrdersNotifier(adminService);
-});
+    StateNotifierProvider<AdminOrdersNotifier, AsyncValue<List<AdminOrder>>>((
+      ref,
+    ) {
+      final adminService = ref.read(adminServiceProvider);
+      return AdminOrdersNotifier(adminService);
+    });
 
-final adminOrderStatsProvider = FutureProvider.autoDispose<OrderStatistics>((ref) async {
+final adminOrderStatsProvider = FutureProvider.autoDispose<OrderStatistics>((
+  ref,
+) async {
   final adminService = ref.read(adminServiceProvider);
   // Watch adminOrdersProvider to refresh stats when orders change (optional but good UI)
-  // Or at least when we toggle status? 
-  // Actually, typically stats are global summary, so they might not change with filters, 
+  // Or at least when we toggle status?
+  // Actually, typically stats are global summary, so they might not change with filters,
   // but they should refresh if we add/edit orders (not implemented yet).
   // For now, let's just fetch it once or on manual refresh.
   // To allow manual refresh, we can use ref.watch(refreshTriggerProvider) pattern or just invalidate.
@@ -72,19 +75,19 @@ class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
             state = AsyncValue.data([...currentOrders, ...newOrders]);
           });
         }
-        
+
         if (newOrders.length < _pageSize) {
           _hasMore = false;
         } else {
-             _currentPage++;
+          _currentPage++;
         }
       }
     } catch (e, st) {
       if (_currentPage == 1) {
-         state = AsyncValue.error(e, st);
+        state = AsyncValue.error(e, st);
       }
-      // If load more fails, we might want to show snackbar or notification in UI, 
-      // but StateNotifier return type is void. 
+      // If load more fails, we might want to show snackbar or notification in UI,
+      // but StateNotifier return type is void.
       // For now, simple error logging.
       FancyLogger.error('Error loading admin orders', e, st);
     } finally {
@@ -107,5 +110,34 @@ class AdminOrdersNotifier extends StateNotifier<AsyncValue<List<AdminOrder>>> {
     _currentStatus = status;
     await refresh();
   }
-}
 
+  Future<void> approveOrder(int orderId) async {
+    try {
+      await _adminService.approveOrder(orderId);
+      await refresh();
+    } catch (e, st) {
+      FancyLogger.error('Error approving order', e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> cancelOrder(int orderId, String reason) async {
+    try {
+      await _adminService.cancelOrder(orderId, reason);
+      await refresh();
+    } catch (e, st) {
+      FancyLogger.error('Error cancelling order', e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> updateOrderStatus(int orderId, String status) async {
+    try {
+      await _adminService.updateOrderStatus(orderId, status);
+      await refresh();
+    } catch (e, st) {
+      FancyLogger.error('Error updating order status', e, st);
+      rethrow;
+    }
+  }
+}
